@@ -1,21 +1,34 @@
 plugins {
-    kotlin("jvm") version "1.9.23"
+  kotlin("jvm") version "1.9.24"
 }
 
-group = "org.koin"
+group = "com.excelkotlin"
 version = "1.0-SNAPSHOT"
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
+  // excel
+  implementation("org.apache.poi:poi:4.1.1")
+  implementation("org.apache.poi:poi-ooxml:4.1.1")
+
+  // reflect
+  implementation(kotlin("reflect"))
+
+  // test
+  testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+  testImplementation("org.assertj:assertj-core:3.25.3")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
 }
 
-tasks.test {
+tasks {
+  test {
     useJUnitPlatform()
+  }
 }
+
 kotlin {
-    jvmToolchain(17)
+  jvmToolchain(21)
 }
