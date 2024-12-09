@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 scripts/**
 gradle/**
+.xlsx
 
 ### STS ###
 .apt_generated

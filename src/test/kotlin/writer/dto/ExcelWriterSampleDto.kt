@@ -1,4 +1,4 @@
-package dto
+package writer.dto
 
 import excel.writer.annotation.ExcelWriterColumn
 import excel.writer.annotation.ExcelWriterHeader
