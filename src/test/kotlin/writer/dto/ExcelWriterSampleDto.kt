@@ -4,11 +4,9 @@ import excel.writer.annotation.ExcelWriterColumn
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
+import shared.ExcelWriterCommonDto
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.reflect.KProperty1
-import kotlin.reflect.full.hasAnnotation
-import kotlin.reflect.full.memberProperties
 
 data class ExcelWriterSampleDto(
   @ExcelWriterColumn(
@@ -88,12 +86,12 @@ data class ExcelWriterSampleDto(
   val extraField: String? = null,
 ) {
 
-  companion object {
+  companion object : ExcelWriterCommonDto<ExcelWriterSampleDto>() {
     enum class OrderStatus {
       ORDERED, PAID, SHIPPED, DELIVERED, CANCELED, REFUND_REQUESTED, REFUND, EXCHANGE_REQUESTED, EXCHANGED;
     }
 
-    fun createSampleData(size: Int): List<ExcelWriterSampleDto> {
+    override fun createSampleData(size: Int): List<ExcelWriterSampleDto> {
       return (1..size).map { number ->
         ExcelWriterSampleDto(
           countryCode = "KR",
@@ -107,15 +105,6 @@ data class ExcelWriterSampleDto(
           productName = "Product $number"
         )
       }
-    }
-
-    fun getMemberProperties(): List<KProperty1<ExcelWriterSampleDto, *>> =
-      ExcelWriterSampleDto::class.memberProperties.filter {
-        it.hasAnnotation<ExcelWriterColumn>()
-      }
-
-    fun getConstructorParameters() = ExcelWriterSampleDto::class.constructors.flatMap { constructor ->
-      constructor.parameters
     }
   }
 }

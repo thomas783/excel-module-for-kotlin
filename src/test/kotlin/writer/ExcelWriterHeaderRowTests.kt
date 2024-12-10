@@ -5,40 +5,45 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
 import io.kotest.matchers.shouldBe
-import shared.ExcelWriterBaseTests
+import shared.ExcelWriterBaseTests.Companion.setCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.memberProperties
 
 @OptIn(ExperimentalKotest::class)
 internal class ExcelWriterHeaderRowTests : BehaviorSpec({
-  val sampleDataSize = 1000
-  val sampleData = ExcelWriterSampleDto.createSampleData(sampleDataSize)
-  val baseTest = ExcelWriterBaseTests().also {
-    it.setCommonSpec(this, sampleData)
-  }
+  val sampleDataKClass = ExcelWriterSampleDto::class
+  val baseTest = setCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
+    sampleDataSize = 1000,
+    path = "sample-header-row",
+  )
 
   given("ExcelWriterColumn Annotation") {
-    val sheet = baseTest.createdWorkbook.getSheetAt(0)
+    val sheet = baseTest.workbook.getSheetAt(0)
     val headerRow = sheet.getRow(0)
     `when`("annotation is provided in constructor") {
 
       then("header row cell counts equal to ExcelWriterSampleDto properties counts that has ExcelWriterColumn annotation") {
-        val excelWriterSampleDtoPropertiesCounts = ExcelWriterSampleDto.getMemberProperties().size
+        val excelWriterSampleDtoPropertiesCounts = sampleDataKClass.memberProperties.filter {
+          it.hasAnnotation<ExcelWriterColumn>()
+        }.size
         headerRow.physicalNumberOfCells shouldBe excelWriterSampleDtoPropertiesCounts
       }
 
       then("header row cell values well created as constructors in order") {
-        val memberPropertiesMap = ExcelWriterSampleDto.getMemberProperties().associate {
-          it.name to it.findAnnotation<ExcelWriterColumn>()
-        }
+        val memberPropertiesMap = sampleDataKClass.memberProperties
+          .associate { it.name to it.findAnnotation<ExcelWriterColumn>() }
         val excelWriterSampleDtoConstructorNamesInOrder =
-          ExcelWriterSampleDto.getConstructorParameters().mapNotNull { parameter ->
+          sampleDataKClass.constructors.flatMap { constructor ->
+            constructor.parameters
+          }.mapNotNull { parameter ->
             val excelWriterColumn = memberPropertiesMap[parameter.name]
             val headerName = excelWriterColumn?.headerName
             headerName?.ifBlank { parameter.name }
           }
 
-        info { "ExcelWriterSampleDto constructor names in order: $excelWriterSampleDtoConstructorNamesInOrder" }
+        info { "${sampleDataKClass.simpleName} constructor names in order: $excelWriterSampleDtoConstructorNamesInOrder" }
 
         val headerRowCellValues = (0 until headerRow.physicalNumberOfCells).map {
           headerRow.getCell(it).stringCellValue

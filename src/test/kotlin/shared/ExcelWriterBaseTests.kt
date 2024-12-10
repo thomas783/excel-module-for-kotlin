@@ -7,15 +7,31 @@ import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.reflect.full.createInstance
 
 class ExcelWriterBaseTests(
-  val sheetName: String = "Sample Excel File",
-  val localPath: String = "src/test/resources/sample.xlsx",
+  val sampleDataSize: Int = 1000,
+  val sheetName: String,
+  private val path: String,
+  val spec: Spec,
+  initialize: ExcelWriterBaseTests.() -> Unit,
 ) : DslDrivenSpec() {
-  lateinit var createdFile: File
-  lateinit var createdWorkbook: Workbook
+  lateinit var excelFile: File
+  lateinit var workbook: Workbook
+  val localPath: String
+    get() = "src/test/resources/$path.xlsx"
 
-  inline fun <reified T : Any> setCommonSpec(spec: Spec, sampleData: Collection<T>) {
+  init {
+    initialize()
+  }
+
+  inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> getSampleData(): Collection<K> {
+    val instance = T::class.objectInstance ?: T::class.createInstance()
+    return instance.createSampleData(sampleDataSize)
+  }
+
+  inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> setCommonSpec() {
+    val sampleData = getSampleData<T, K>()
     spec.apply {
 
       beforeSpec {
@@ -28,20 +44,39 @@ class ExcelWriterBaseTests(
           dispose()
           close()
         }
-        createdFile = File(localPath)
+        excelFile = File(localPath)
       }
 
       beforeTest {
-        createdWorkbook = createdFile.inputStream().use { WorkbookFactory.create(it) }
+        workbook = excelFile.inputStream().use { WorkbookFactory.create(it) }
       }
 
       afterTest {
-        createdWorkbook.close()
+        workbook.close()
       }
 
       afterSpec {
-        createdFile.delete()
+        excelFile.delete()
       }
+    }
+  }
+
+  companion object {
+    inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> Spec.setCommonSpec(
+      sampleDataSize: Int = 1000,
+      sheetName: String = "Sample Excel File",
+      path: String = "sample",
+    ): ExcelWriterBaseTests {
+      val baseTest = ExcelWriterBaseTests(
+        sampleDataSize = sampleDataSize,
+        sheetName = sheetName,
+        path = path,
+        spec = this,
+      ) {
+        this.setCommonSpec<T, K>()
+      }
+
+      return baseTest
     }
   }
 }
