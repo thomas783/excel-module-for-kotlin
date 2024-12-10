@@ -29,11 +29,17 @@ class ExcelWriterBaseTests(
           close()
         }
         createdFile = File(localPath)
+      }
+
+      beforeTest {
         createdWorkbook = createdFile.inputStream().use { WorkbookFactory.create(it) }
       }
 
-      afterSpec {
+      afterTest {
         createdWorkbook.close()
+      }
+
+      afterSpec {
         createdFile.delete()
       }
     }
