@@ -1,20 +1,16 @@
 package writer.dto
 
 import excel.writer.annotation.ExcelWriterColumn
-import excel.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
 import java.time.LocalDate
 import java.time.LocalDateTime
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.hasAnnotation
+import kotlin.reflect.full.memberProperties
 
-@ExcelWriterHeader(
-  essentialFields = [
-    "countryCode", "sku", "orderNumber", "orderStatus", "price", "quantity"
-  ]
-)
 data class ExcelWriterSampleDto(
-  // Essential Fields
   @ExcelWriterColumn(
     headerName = "COUNTRY CODE",
     headerCellColor = IndexedColors.RED,
@@ -29,7 +25,7 @@ data class ExcelWriterSampleDto(
   val countryCode: String,
 
   @ExcelWriterColumn(
-    headerName = "SKU",
+//    headerName = "SKU",
     headerCellColor = IndexedColors.RED,
     validationPromptTitle = "SKU"
   )
@@ -68,7 +64,6 @@ data class ExcelWriterSampleDto(
   )
   val quantity: Int,
 
-  // Optional Fields
   @ExcelWriterColumn(
     headerName = "ORDERED AT",
     headerCellColor = IndexedColors.BLUE,
@@ -89,7 +84,10 @@ data class ExcelWriterSampleDto(
     validationPromptTitle = "PRODUCT NAME"
   )
   val productName: String? = null,
+
+  val extraField: String? = null,
 ) {
+
   companion object {
     enum class OrderStatus {
       ORDERED, PAID, SHIPPED, DELIVERED, CANCELED, REFUND_REQUESTED, REFUND, EXCHANGE_REQUESTED, EXCHANGED;
@@ -100,7 +98,7 @@ data class ExcelWriterSampleDto(
         ExcelWriterSampleDto(
           countryCode = "KR",
           sku = "SKU-$number",
-          orderNumber = number.toString(),
+          orderNumber = "orderNumber-$number",
           orderStatus = OrderStatus.entries.toTypedArray().random(),
           price = (number % 10) * 1000.0,
           quantity = number % 3 + 1,
@@ -109,6 +107,15 @@ data class ExcelWriterSampleDto(
           productName = "Product $number"
         )
       }
+    }
+
+    fun getMemberProperties(): List<KProperty1<ExcelWriterSampleDto, *>> =
+      ExcelWriterSampleDto::class.memberProperties.filter {
+        it.hasAnnotation<ExcelWriterColumn>()
+      }
+
+    fun getConstructorParameters() = ExcelWriterSampleDto::class.constructors.flatMap { constructor ->
+      constructor.parameters
     }
   }
 }

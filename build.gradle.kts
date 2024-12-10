@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
   kotlin("jvm") version "1.9.24"
 }
@@ -26,6 +29,11 @@ dependencies {
 tasks {
   test {
     useJUnitPlatform()
+    testLogging {
+      events = setOf(TestLogEvent.FAILED, TestLogEvent.SKIPPED, TestLogEvent.PASSED)
+      showStandardStreams = true
+      exceptionFormat = TestExceptionFormat.FULL
+    }
   }
 }
 

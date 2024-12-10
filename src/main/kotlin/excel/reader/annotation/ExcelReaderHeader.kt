@@ -1,7 +1,7 @@
-package excel.writer.annotation
+package excel.reader.annotation
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)
-annotation class ExcelWriterHeader(
+annotation class ExcelReaderHeader(
   val essentialFields: Array<String> = [],
 )
