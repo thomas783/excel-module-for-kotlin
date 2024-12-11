@@ -77,7 +77,6 @@ data class ExcelWriterSampleDto(
 
   @ExcelWriterColumn(
     headerName = "PRODUCT NAME",
-    headerCellColor = IndexedColors.BLUE,
     validationPromptTitle = "PRODUCT NAME"
   )
   val productName: String? = null,

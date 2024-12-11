@@ -5,6 +5,7 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
 import io.kotest.matchers.shouldBe
+import org.apache.poi.ss.usermodel.IndexedColors
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import kotlin.reflect.full.findAnnotation
@@ -22,8 +23,17 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
   given("ExcelWriterColumn Annotation") {
     val sheet = baseTest.workbook.getSheetAt(0)
     val headerRow = sheet.getRow(0)
-    `when`("annotation is provided in constructor") {
+    val headerRowCellValues = (0 until headerRow.physicalNumberOfCells).map { columnIdx ->
+      headerRow.getCell(columnIdx).stringCellValue
+    }
+    val sampleDtoMemberPropertiesMap = sampleDataKClass.memberProperties
+      .filter { it.hasAnnotation<ExcelWriterColumn>() }
+      .associate { it.name to it.findAnnotation<ExcelWriterColumn>() }
+    val sampleDtoConstructorParameters = sampleDataKClass.constructors.flatMap {
+      it.parameters
+    }
 
+    `when`("annotation is provided in constructor") {
       then("header row cell counts equal to ExcelWriterSampleDto properties counts that has ExcelWriterColumn annotation") {
         val excelWriterSampleDtoPropertiesCounts = sampleDataKClass.memberProperties.filter {
           it.hasAnnotation<ExcelWriterColumn>()
@@ -32,27 +42,17 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
       }
 
       then("header row cell values well created as constructors in order") {
-        val memberPropertiesMap = sampleDataKClass.memberProperties
-          .associate { it.name to it.findAnnotation<ExcelWriterColumn>() }
-        val excelWriterSampleDtoConstructorNamesInOrder =
-          sampleDataKClass.constructors.flatMap { constructor ->
-            constructor.parameters
-          }.mapNotNull { parameter ->
-            val excelWriterColumn = memberPropertiesMap[parameter.name]
-            val headerName = excelWriterColumn?.headerName
-            headerName?.ifBlank { parameter.name }
-          }
-
-        info { "${sampleDataKClass.simpleName} constructor names in order: $excelWriterSampleDtoConstructorNamesInOrder" }
-
-        val headerRowCellValues = (0 until headerRow.physicalNumberOfCells).map {
-          headerRow.getCell(it).stringCellValue
+        val sampleDtoHeaderNamesInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
+          val excelWriterColumn = sampleDtoMemberPropertiesMap[parameter.name]
+          val headerName = excelWriterColumn?.headerName
+          headerName?.ifBlank { parameter.name }
         }
 
+        info { "${sampleDataKClass.simpleName} constructor header names in order: $sampleDtoHeaderNamesInOrder" }
         info { "Excel file header row cell values: $headerRowCellValues" }
 
         (0 until headerRow.physicalNumberOfCells).forEach {
-          headerRowCellValues[it] shouldBe excelWriterSampleDtoConstructorNamesInOrder[it]
+          headerRowCellValues[it] shouldBe sampleDtoHeaderNamesInOrder[it]
         }
       }
     }
@@ -65,14 +65,28 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
         }.map { it.name }
 
         info { "Members without header name annotated: $memberNamesWithoutHeaderNameAnnotated" }
-
-        val headerRowCellValues = (0 until headerRow.physicalNumberOfCells).map { columnIdx ->
-          headerRow.getCell(columnIdx).stringCellValue
-        }
-
         info { "Excel header row cell values: $headerRowCellValues" }
 
-        headerRowCellValues.containsAll(memberNamesWithoutHeaderNameAnnotated)
+        headerRowCellValues.containsAll(memberNamesWithoutHeaderNameAnnotated) shouldBe true
+      }
+    }
+
+    `when`("headerCellColor is provided") {
+      then("header row cell style fillForegroundColor is set to provided color") {
+        val sampleDtoHeaderCellColorsInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
+          sampleDtoMemberPropertiesMap[parameter.name]?.headerCellColor
+        }
+        val headerRowCellStyles = (0 until headerRow.physicalNumberOfCells).map { columnIdx ->
+          val colorIndex = headerRow.getCell(columnIdx).cellStyle.fillForegroundColor
+          IndexedColors.fromInt(colorIndex.toInt())
+        }
+
+        info { "${sampleDataKClass.simpleName} constructor header cell colors in order: $sampleDtoHeaderCellColorsInOrder" }
+        info { "Excel header row cell colors: $headerRowCellStyles" }
+
+        (0 until headerRow.physicalNumberOfCells).forEach {
+          headerRowCellStyles[it] shouldBe sampleDtoHeaderCellColorsInOrder[it]
+        }
       }
     }
   }

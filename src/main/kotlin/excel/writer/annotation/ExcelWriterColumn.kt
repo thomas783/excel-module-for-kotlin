@@ -9,9 +9,9 @@ import kotlin.reflect.KClass
 /**
  * Excel column annotation for writer
  * @param headerName Customized headerName for Excel column. If not provided, it will use the property name itself
- * @param headerCellColor Customized header cell color
- * @param validationType DataValidationConstraint.ValidationType
- * @param operationType DataValidationConstraint.OperatorType
+ * @param headerCellColor Customized header cell color. Default [IndexedColors.WHITE]
+ * @param validationType [DataValidationConstraint.ValidationType]
+ * @param operationType [DataValidationConstraint.OperatorType]
  * @param operationFormula1 Customized operation formula 1
  * @param operationFormula2 Customized operation formula 2
  * @param validationIgnoreBlank Ignore blank cell for validation
@@ -24,6 +24,7 @@ import kotlin.reflect.KClass
  * @param validationErrorTitle Title for validation if error occurs
  * @param validationErrorText Text for validation if error occurs
  * @throws ExcelWriterException if validationListOptions or validationListEnum is not provided
+ * @see IndexedColors
  */
 
 @Retention(AnnotationRetention.RUNTIME)
