@@ -62,7 +62,7 @@ class ExcelWriterBaseTests(
   }
 
   companion object {
-    inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> Spec.setCommonSpec(
+    inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> Spec.setExcelWriterCommonSpec(
       sampleDataSize: Int = 1000,
       sheetName: String = "Sample Excel File",
       path: String = "sample",

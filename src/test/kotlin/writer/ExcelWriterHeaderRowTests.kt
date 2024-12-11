@@ -5,7 +5,7 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
 import io.kotest.matchers.shouldBe
-import shared.ExcelWriterBaseTests.Companion.setCommonSpec
+import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
@@ -14,7 +14,7 @@ import kotlin.reflect.full.memberProperties
 @OptIn(ExperimentalKotest::class)
 internal class ExcelWriterHeaderRowTests : BehaviorSpec({
   val sampleDataKClass = ExcelWriterSampleDto::class
-  val baseTest = setCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
+  val baseTest = setExcelWriterCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
     sampleDataSize = 1000,
     path = "sample-header-row",
   )

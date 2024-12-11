@@ -2,12 +2,12 @@ package writer
 
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
-import shared.ExcelWriterBaseTests.Companion.setCommonSpec
+import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 
 internal class ExcelWriterCreateTests : ShouldSpec({
   val sampleDataSize = 1000
-  val baseTest = setCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
+  val baseTest = setExcelWriterCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
     sampleDataSize = sampleDataSize,
     path = "sample-create",
   )
