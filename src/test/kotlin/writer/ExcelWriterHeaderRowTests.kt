@@ -56,5 +56,24 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
         }
       }
     }
+
+    `when`("headerName is not provided in annotation") {
+      then("member's property name is replaced instead") {
+        val memberNamesWithoutHeaderNameAnnotated = sampleDataKClass.memberProperties.filter {
+          val excelWriterAnnotation = it.findAnnotation<ExcelWriterColumn>()
+          excelWriterAnnotation != null && excelWriterAnnotation.headerName.isBlank()
+        }.map { it.name }
+
+        info { "Members without header name annotated: $memberNamesWithoutHeaderNameAnnotated" }
+
+        val headerRowCellValues = (0 until headerRow.physicalNumberOfCells).map { columnIdx ->
+          headerRow.getCell(columnIdx).stringCellValue
+        }
+
+        info { "Excel header row cell values: $headerRowCellValues" }
+
+        headerRowCellValues.containsAll(memberNamesWithoutHeaderNameAnnotated)
+      }
+    }
   }
 })

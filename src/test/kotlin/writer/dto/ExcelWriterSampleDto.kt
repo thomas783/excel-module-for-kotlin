@@ -4,7 +4,7 @@ import excel.writer.annotation.ExcelWriterColumn
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
-import shared.ExcelWriterCommonDto
+import shared.IExcelWriterCommonDto
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -23,7 +23,6 @@ data class ExcelWriterSampleDto(
   val countryCode: String,
 
   @ExcelWriterColumn(
-//    headerName = "SKU",
     headerCellColor = IndexedColors.RED,
     validationPromptTitle = "SKU"
   )
@@ -86,7 +85,7 @@ data class ExcelWriterSampleDto(
   val extraField: String? = null,
 ) {
 
-  companion object : ExcelWriterCommonDto<ExcelWriterSampleDto>() {
+  companion object : IExcelWriterCommonDto<ExcelWriterSampleDto> {
     enum class OrderStatus {
       ORDERED, PAID, SHIPPED, DELIVERED, CANCELED, REFUND_REQUESTED, REFUND, EXCHANGE_REQUESTED, EXCHANGED;
     }

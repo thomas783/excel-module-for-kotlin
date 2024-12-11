@@ -25,12 +25,12 @@ class ExcelWriterBaseTests(
     initialize()
   }
 
-  inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> getSampleData(): Collection<K> {
+  inline fun <reified T : IExcelWriterCommonDto<K>, reified K : Any> getSampleData(): Collection<K> {
     val instance = T::class.objectInstance ?: T::class.createInstance()
     return instance.createSampleData(sampleDataSize)
   }
 
-  inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> setCommonSpec() {
+  inline fun <reified T : IExcelWriterCommonDto<K>, reified K : Any> setCommonSpec() {
     val sampleData = getSampleData<T, K>()
     spec.apply {
 
@@ -62,7 +62,7 @@ class ExcelWriterBaseTests(
   }
 
   companion object {
-    inline fun <reified T : ExcelWriterCommonDto<K>, reified K : Any> Spec.setExcelWriterCommonSpec(
+    inline fun <reified T : IExcelWriterCommonDto<K>, reified K : Any> Spec.setExcelWriterCommonSpec(
       sampleDataSize: Int = 1000,
       sheetName: String = "Sample Excel File",
       path: String = "sample",
