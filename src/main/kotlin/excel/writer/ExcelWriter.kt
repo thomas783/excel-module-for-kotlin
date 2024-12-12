@@ -9,7 +9,6 @@ import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.DataFormat
 import org.apache.poi.ss.usermodel.DataValidationConstraint
-import org.apache.poi.ss.usermodel.DataValidationHelper
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.HorizontalAlignment
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -77,7 +76,8 @@ class ExcelWriter {
         createSheet(sheetName).apply {
           // tracking all columns for auto-sizing takes to long
           untrackAllColumnsForAutoSizing()
-          setHeaderRow(parameters)
+          setHeaderRows(parameters)
+          setValidationConstraints(parameters, data.size)
           setBodyData(data, parameters)
         }
       }
@@ -85,18 +85,18 @@ class ExcelWriter {
       return workbook
     }
 
-    fun <T : Any> SXSSFSheet.setHeaderRow(kProperties: List<KProperty1<T, *>>) {
+    fun <T : Any> SXSSFSheet.setHeaderRows(kProperties: List<KProperty1<T, *>>) {
       val headerRow = createRow(0)
-      kProperties.forEachIndexed { colIndex, property ->
+      kProperties.forEachIndexed { columnIndex, property ->
         val columnAnnotation = property.findAnnotation<ExcelWriterColumn>() ?: return@forEachIndexed
         val headerName = columnAnnotation.headerName.takeIf { it.isNotBlank() } ?: property.name
         val headerCellStyle = createHeaderCellStyle(workbook, columnAnnotation)
 
-        headerRow.createCell(colIndex).apply {
+        headerRow.createCell(columnIndex).apply {
           setCellValue(headerName)
           cellStyle = headerCellStyle
         }
-        setHeaderPromptBox(property, colIndex)
+        setHeaderPromptBox(property, columnIndex)
       }
     }
 
@@ -139,12 +139,10 @@ class ExcelWriter {
       inputData.mapIndexed { rowIndex, item ->
         val row = this.createRow(rowIndex + 1)
         kProperties.forEachIndexed { columnIndex, property ->
-          val excelColumn = property.findAnnotation<ExcelWriterColumn>() ?: return@forEachIndexed
           val cell = row.createCell(columnIndex)
           val value = property.get(item)
 
           if (value != null) cell.setValueAndDataFormat(property, value)
-          setValidationConstraint(excelColumn, columnIndex, rowIndex + 1)
         }
       }
     }
@@ -171,46 +169,65 @@ class ExcelWriter {
       }
     }
 
+    fun <T : Any> SXSSFSheet.setValidationConstraints(
+      kProperties: List<KProperty1<T, *>>,
+      dataSize: Int,
+    ) {
+      val helper = this.dataValidationHelper
+      kProperties.forEachIndexed { columnIndex, property ->
+        val excelColumn = property.findAnnotation<ExcelWriterColumn>() ?: return@forEachIndexed
+        when (excelColumn.validationType) {
+          DataValidationConstraint.ValidationType.FORMULA -> {
+            (1..dataSize).forEach { rowIndex ->
+              val formula = excelColumn.getValidationFormula(columnIndex, rowIndex)
+              val constraint = helper.createCustomConstraint(formula)
+              val addressList = CellRangeAddressList(rowIndex, rowIndex, columnIndex, columnIndex)
+              setValidationConstraint(excelColumn, addressList, constraint)
+            }
+          }
+
+          DataValidationConstraint.ValidationType.LIST -> {
+            val options = excelColumn.getValidationList()
+            val constraint = helper.createExplicitListConstraint(options)
+            val addressList = CellRangeAddressList(1, dataSize, columnIndex, columnIndex)
+            setValidationConstraint(excelColumn, addressList, constraint)
+          }
+
+          DataValidationConstraint.ValidationType.TEXT_LENGTH -> {
+            val constraint = with(excelColumn) {
+              helper.createTextLengthConstraint(operationType, operationFormula1, operationFormula2)
+            }
+            val addressList = CellRangeAddressList(1, dataSize, columnIndex, columnIndex)
+            setValidationConstraint(excelColumn, addressList, constraint)
+          }
+
+          DataValidationConstraint.ValidationType.DECIMAL -> {
+            val constraint = with(excelColumn) {
+              helper.createDecimalConstraint(operationType, operationFormula1, operationFormula2)
+            }
+            val addressList = CellRangeAddressList(1, dataSize, columnIndex, columnIndex)
+            setValidationConstraint(excelColumn, addressList, constraint)
+          }
+
+          DataValidationConstraint.ValidationType.INTEGER -> {
+            val constraint = with(excelColumn) {
+              helper.createIntegerConstraint(operationType, operationFormula1, operationFormula2)
+            }
+            val addressList = CellRangeAddressList(1, dataSize, columnIndex, columnIndex)
+            setValidationConstraint(excelColumn, addressList, constraint)
+          }
+
+          else -> return@forEachIndexed
+        }
+      }
+    }
+
     private fun SXSSFSheet.setValidationConstraint(
       excelColumn: ExcelWriterColumn,
-      columnIndex: Int,
-      rowIndex: Int
+      addressList: CellRangeAddressList,
+      constraint: DataValidationConstraint,
     ) {
-      val helper: DataValidationHelper = this.dataValidationHelper
-      val constraint: DataValidationConstraint = when (excelColumn.validationType) {
-        DataValidationConstraint.ValidationType.LIST -> {
-          val options = excelColumn.getValidationList()
-          helper.createExplicitListConstraint(options)
-        }
-
-        DataValidationConstraint.ValidationType.FORMULA -> {
-          val formula = excelColumn.getValidationFormula(columnIndex, rowIndex)
-          helper.createCustomConstraint(formula)
-        }
-
-        DataValidationConstraint.ValidationType.TEXT_LENGTH -> {
-          with(excelColumn) {
-            helper.createTextLengthConstraint(operationType, operationFormula1, operationFormula2)
-          }
-        }
-
-        DataValidationConstraint.ValidationType.DECIMAL -> {
-          with(excelColumn) {
-            helper.createDecimalConstraint(operationType, operationFormula1, operationFormula2)
-          }
-        }
-
-        DataValidationConstraint.ValidationType.INTEGER -> {
-          with(excelColumn) {
-            helper.createIntegerConstraint(operationType, operationFormula1, operationFormula2)
-          }
-        }
-
-        else -> return
-      }
-
-      val addressList = CellRangeAddressList(rowIndex, rowIndex, columnIndex, columnIndex)
-      val validation = helper.createValidation(constraint, addressList).apply {
+      val validation = this.dataValidationHelper.createValidation(constraint, addressList).apply {
         showErrorBox = true
         emptyCellAllowed = excelColumn.validationIgnoreBlank
         errorStyle = excelColumn.validationErrorStyle

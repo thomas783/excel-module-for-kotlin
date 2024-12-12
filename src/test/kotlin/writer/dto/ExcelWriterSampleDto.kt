@@ -24,7 +24,6 @@ data class ExcelWriterSampleDto(
 
   @ExcelWriterColumn(
     headerCellColor = IndexedColors.RED,
-    validationPromptTitle = "SKU"
   )
   val sku: String,
 

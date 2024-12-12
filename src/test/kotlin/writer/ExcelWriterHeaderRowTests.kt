@@ -33,11 +33,15 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
       it.parameters
     }
 
-    `when`("annotation is provided in constructor") {
+    given("annotation is provided in constructor") {
       then("header row cell counts equal to ExcelWriterSampleDto properties counts that has ExcelWriterColumn annotation") {
         val excelWriterSampleDtoPropertiesCounts = sampleDataKClass.memberProperties.filter {
           it.hasAnnotation<ExcelWriterColumn>()
         }.size
+
+        info { "${sampleDataKClass.simpleName} ExcelWriterColumn annotation provided properties count: $excelWriterSampleDtoPropertiesCounts" }
+        info { "Excel file header row cell count: ${headerRow.physicalNumberOfCells}" }
+
         headerRow.physicalNumberOfCells shouldBe excelWriterSampleDtoPropertiesCounts
       }
 
@@ -51,13 +55,26 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
         info { "${sampleDataKClass.simpleName} constructor header names in order: $sampleDtoHeaderNamesInOrder" }
         info { "Excel file header row cell values: $headerRowCellValues" }
 
-        (0 until headerRow.physicalNumberOfCells).forEach {
-          headerRowCellValues[it] shouldBe sampleDtoHeaderNamesInOrder[it]
+        (0 until headerRow.physicalNumberOfCells).forEach { columnIdx ->
+          headerRowCellValues[columnIdx] shouldBe sampleDtoHeaderNamesInOrder[columnIdx]
         }
       }
     }
 
-    `when`("headerName is not provided in annotation") {
+    given("headerName is provided in annotation") {
+      then("header row cell values are set to provided headerName") {
+        val memberNamesWithHeaderNameAnnotated = sampleDataKClass.memberProperties.mapNotNull {
+          it.findAnnotation<ExcelWriterColumn>()?.headerName
+        }.filter { it.isNotBlank() }
+
+        info { "Members with header name annotated: $memberNamesWithHeaderNameAnnotated" }
+        info { "Excel header row cell values: $headerRowCellValues" }
+
+        headerRowCellValues.containsAll(memberNamesWithHeaderNameAnnotated) shouldBe true
+      }
+    }
+
+    given("headerName is not provided in annotation") {
       then("member's property name is replaced instead") {
         val memberNamesWithoutHeaderNameAnnotated = sampleDataKClass.memberProperties.filter {
           val excelWriterAnnotation = it.findAnnotation<ExcelWriterColumn>()
@@ -71,8 +88,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
       }
     }
 
-    `when`("headerCellColor is provided") {
-      then("header row cell style fillForegroundColor is set to provided color") {
+    given("headerCellColor is provided") {
+      then("header row cell style fillForegroundColor is set to provided color if not provided set to default IndexedColors.WHITE") {
         val sampleDtoHeaderCellColorsInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
           sampleDtoMemberPropertiesMap[parameter.name]?.headerCellColor
         }
@@ -86,6 +103,26 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
 
         (0 until headerRow.physicalNumberOfCells).forEach {
           headerRowCellStyles[it] shouldBe sampleDtoHeaderCellColorsInOrder[it]
+        }
+      }
+    }
+
+    given("validationPromptTitle is provided") {
+      then("validation prompt title is set to provided title") {
+        val sampleDtoValidationPromptTitlesInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
+          sampleDtoMemberPropertiesMap[parameter.name]?.validationPromptTitle
+        }
+        val dataValidations = sheet.dataValidations
+        println(dataValidations)
+        val headerRowCellValidationPromptTitles = (0 until headerRow.physicalNumberOfCells).map { columnIdx ->
+          headerRow.getCell(columnIdx).cellComment?.string?.string
+        }
+
+        info { "${sampleDataKClass.simpleName} constructor validation prompt titles in order: $sampleDtoValidationPromptTitlesInOrder" }
+        info { "Excel header row cell validation prompt titles: $headerRowCellValidationPromptTitles" }
+
+        (0 until headerRow.physicalNumberOfCells).forEach {
+          headerRowCellValidationPromptTitles[it] shouldBe sampleDtoValidationPromptTitlesInOrder[it]
         }
       }
     }
