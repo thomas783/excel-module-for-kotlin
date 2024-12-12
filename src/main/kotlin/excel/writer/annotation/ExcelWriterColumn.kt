@@ -1,20 +1,22 @@
 package excel.writer.annotation
 
 import excel.writer.exception.ExcelWriterException
+import excel.writer.exception.ExcelWriterValidationFormulaException
+import excel.writer.exception.ExcelWriterValidationListException
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
 import kotlin.reflect.KClass
 
 /**
- * Excel column annotation for writer
+ * Annotation for Excel writer column options
  * @param headerName Customized headerName for Excel column. If not provided, it will use the property name itself
  * @param headerCellColor Customized header cell color. Default [IndexedColors.WHITE]
- * @param validationType [DataValidationConstraint.ValidationType]
- * @param operationType [DataValidationConstraint.OperatorType]
+ * @param validationType [DataValidationConstraint.ValidationType]. Default [DataValidationConstraint.ValidationType.ANY]
+ * @param operationType [DataValidationConstraint.OperatorType]. Default [DataValidationConstraint.OperatorType.IGNORED]
  * @param operationFormula1 Customized operation formula 1
  * @param operationFormula2 Customized operation formula 2
- * @param validationIgnoreBlank Ignore blank cell for validation
+ * @param validationIgnoreBlank Ignore blank cell for validation. Use for nullable fields. Default true
  * @param validationListOptions Array of validation list options
  * @param validationListEnum Enum class for validation list options
  * @param validationPromptTitle Title for validation if error occurs
@@ -55,13 +57,13 @@ annotation class ExcelWriterColumn(
         validationListEnum != DefaultValidationListEnum::class -> validationListEnum.java.enumConstants.map { it.name }
           .toTypedArray()
 
-        else -> throw ExcelWriterException("ExcelColumn with either validationListOptions or validationListEnum is required")
+        else -> throw ExcelWriterValidationListException()
       }
     }
 
     fun ExcelWriterColumn.getValidationFormula(columnIdx: Int, rowIdx: Int): String {
       if (this.validationFormula.isBlank())
-        throw ExcelWriterException("ExcelColumn with validationFormula is required")
+        throw ExcelWriterValidationFormulaException()
 
       return if (this.validationFormula.contains(CURRENT_CELL))
         this.validationFormula.replace(CURRENT_CELL, "${getExcelColumnLetter(columnIdx)}${rowIdx + 1}")

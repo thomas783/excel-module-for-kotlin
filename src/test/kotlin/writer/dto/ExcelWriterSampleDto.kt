@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
 import shared.IExcelWriterCommonDto
+import shared.OrderStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -84,10 +85,6 @@ data class ExcelWriterSampleDto(
 ) {
 
   companion object : IExcelWriterCommonDto<ExcelWriterSampleDto> {
-    enum class OrderStatus {
-      ORDERED, PAID, SHIPPED, DELIVERED, CANCELED, REFUND_REQUESTED, REFUND, EXCHANGE_REQUESTED, EXCHANGED;
-    }
-
     override fun createSampleData(size: Int): List<ExcelWriterSampleDto> {
       return (1..size).map { number ->
         ExcelWriterSampleDto(

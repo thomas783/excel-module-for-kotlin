@@ -1,7 +1,11 @@
 package writer
 
+import excel.writer.ExcelWriter
 import excel.writer.annotation.ExcelWriterColumn
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
+import excel.writer.exception.ExcelWriterValidationFormulaException
+import excel.writer.exception.ExcelWriterValidationListException
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
@@ -9,15 +13,18 @@ import io.kotest.matchers.shouldBe
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
+import writer.dto.ExcelWriterSampleValidationTypeFormulaErrorDto
+import writer.dto.ExcelWriterSampleValidationTypeListErrorDto
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
 
 @OptIn(ExperimentalKotest::class)
 internal class ExcelWriterValidationTests : BehaviorSpec({
+  val sampleDataSize = 1000
   val sampleDataKClass = ExcelWriterSampleDto::class
   val baseTest = setExcelWriterCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
-    sampleDataSize = 1000,
+    sampleDataSize = sampleDataSize,
     path = "sample-validation",
   )
 
@@ -95,6 +102,35 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
             dataValidationsByColumn[columnIdx]?.forEach { ignoreBlankValue ->
               ignoreBlankValue shouldBe expectedIgnoreBlankValue
             }
+          }
+        }
+      }
+
+      given("validationType is list") {
+        given("if validationListOptions is annotated") {
+
+        }
+        given("if validationListOptions nor validationListEnum is not annotated") {
+          val validationListErrorDto =
+            ExcelWriterSampleValidationTypeListErrorDto.createSampleData(size = sampleDataSize)
+
+          then("ExcelWriterValidationListException is thrown") {
+            shouldThrow<ExcelWriterValidationListException> {
+              ExcelWriter.createWorkbook(validationListErrorDto, "sample-validation-list-type-error")
+            }.also { info { it } }
+          }
+        }
+      }
+
+      given("validationType is formula") {
+        given("validationFormula is blank") {
+          val validationFormulaErrorDto =
+            ExcelWriterSampleValidationTypeFormulaErrorDto.createSampleData(size = sampleDataSize)
+
+          then("ExcelWriterValidationFormulaException is thrown") {
+            shouldThrow<ExcelWriterValidationFormulaException> {
+              ExcelWriter.createWorkbook(validationFormulaErrorDto, "sample-validation-formula-type-error")
+            }.also { info { it } }
           }
         }
       }

@@ -1,0 +1,13 @@
+package shared
+
+enum class OrderStatus {
+  ORDERED,
+  PAID,
+  SHIPPED,
+  DELIVERED,
+  CANCELED,
+  REFUND_REQUESTED,
+  REFUND,
+  EXCHANGE_REQUESTED,
+  EXCHANGED;
+}
