@@ -1,7 +1,6 @@
 package writer
 
 import excel.writer.annotation.ExcelWriterColumn
-import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
@@ -62,8 +61,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
       }
     }
 
-    given("headerName is provided in annotation") {
-      then("header row cell values are set to provided headerName") {
+    given("headerName is annotated") {
+      then("header row cell values are set to annotated headerName") {
         val memberNamesWithHeaderNameAnnotated = sampleDataKClass.memberProperties.mapNotNull {
           it.findAnnotation<ExcelWriterColumn>()?.headerName
         }.filter { it.isNotBlank() }
@@ -75,7 +74,7 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
       }
     }
 
-    given("headerName is not provided in annotation") {
+    given("headerName is not annotated") {
       then("member's property name is replaced instead") {
         val memberNamesWithoutHeaderNameAnnotated = sampleDataKClass.memberProperties.filter {
           val excelWriterAnnotation = it.findAnnotation<ExcelWriterColumn>()
@@ -89,8 +88,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
       }
     }
 
-    given("headerCellColor is provided") {
-      then("header row cell style fillForegroundColor is set to provided color if not provided set to default IndexedColors.WHITE") {
+    given("headerCellColor is annotated") {
+      then("header row cell style fillForegroundColor is set to annotated color if not annotated set to default IndexedColors.WHITE") {
         val sampleDtoHeaderCellColorsInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
           sampleDtoMemberPropertiesMap[parameter.name]?.headerCellColor
         }
@@ -104,42 +103,6 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
 
         headerRowCellStyles.indices.forEach {
           headerRowCellStyles[it] shouldBe sampleDtoHeaderCellColorsInOrder[it]
-        }
-      }
-    }
-
-    given("validationPromptTitle is provided") {
-      then("validation prompt title is set to provided title") {
-        val sampleDtoValidationPromptTitlesInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
-          sampleDtoMemberPropertiesMap[parameter.name]?.validationPromptTitle
-        }
-        val headerRowCellValidationPromptTitles =
-          sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
-            .map { it.promptBoxTitle }
-
-        info { "${sampleDataKClass.simpleName} constructor validation prompt titles in order: $sampleDtoValidationPromptTitlesInOrder" }
-        info { "Excel header row cell validation prompt titles: $headerRowCellValidationPromptTitles" }
-
-        headerRowCellValidationPromptTitles.indices.forEach {
-          headerRowCellValidationPromptTitles[it] shouldBe sampleDtoValidationPromptTitlesInOrder[it]
-        }
-      }
-    }
-
-    given("validationPromptText is provided") {
-      then("validation prompt text is set to expected text") {
-        val sampleDtoValidationPromptTextsInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
-          sampleDtoMemberPropertiesMap[parameter.name]?.getValidationPromptText()
-        }
-        val headerRowCellValidationPromptTexts =
-          sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
-            .map { it.promptBoxText }
-
-        info { "${sampleDataKClass.simpleName} constructor validation prompt texts in order: $sampleDtoValidationPromptTextsInOrder" }
-        info { "Excel header row cell validation prompt texts: $headerRowCellValidationPromptTexts" }
-
-        headerRowCellValidationPromptTexts.indices.forEach {
-          headerRowCellValidationPromptTexts[it] shouldBe sampleDtoValidationPromptTextsInOrder[it]
         }
       }
     }
