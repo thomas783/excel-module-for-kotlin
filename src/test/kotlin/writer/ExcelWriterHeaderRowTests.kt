@@ -1,6 +1,7 @@
 package writer
 
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
@@ -101,7 +102,7 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
         info { "${sampleDataKClass.simpleName} constructor header cell colors in order: $sampleDtoHeaderCellColorsInOrder" }
         info { "Excel header row cell colors: $headerRowCellStyles" }
 
-        (0 until headerRow.physicalNumberOfCells).forEach {
+        headerRowCellStyles.indices.forEach {
           headerRowCellStyles[it] shouldBe sampleDtoHeaderCellColorsInOrder[it]
         }
       }
@@ -112,17 +113,33 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
         val sampleDtoValidationPromptTitlesInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
           sampleDtoMemberPropertiesMap[parameter.name]?.validationPromptTitle
         }
-        val dataValidations = sheet.dataValidations
-        println(dataValidations)
-        val headerRowCellValidationPromptTitles = (0 until headerRow.physicalNumberOfCells).map { columnIdx ->
-          headerRow.getCell(columnIdx).cellComment?.string?.string
-        }
+        val headerRowCellValidationPromptTitles =
+          sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
+            .map { it.promptBoxTitle }
 
         info { "${sampleDataKClass.simpleName} constructor validation prompt titles in order: $sampleDtoValidationPromptTitlesInOrder" }
         info { "Excel header row cell validation prompt titles: $headerRowCellValidationPromptTitles" }
 
-        (0 until headerRow.physicalNumberOfCells).forEach {
+        headerRowCellValidationPromptTitles.indices.forEach {
           headerRowCellValidationPromptTitles[it] shouldBe sampleDtoValidationPromptTitlesInOrder[it]
+        }
+      }
+    }
+
+    given("validationPromptText is provided") {
+      then("validation prompt text is set to expected text") {
+        val sampleDtoValidationPromptTextsInOrder = sampleDtoConstructorParameters.mapNotNull { parameter ->
+          sampleDtoMemberPropertiesMap[parameter.name]?.getValidationPromptText()
+        }
+        val headerRowCellValidationPromptTexts =
+          sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
+            .map { it.promptBoxText }
+
+        info { "${sampleDataKClass.simpleName} constructor validation prompt texts in order: $sampleDtoValidationPromptTextsInOrder" }
+        info { "Excel header row cell validation prompt texts: $headerRowCellValidationPromptTexts" }
+
+        headerRowCellValidationPromptTexts.indices.forEach {
+          headerRowCellValidationPromptTexts[it] shouldBe sampleDtoValidationPromptTextsInOrder[it]
         }
       }
     }
