@@ -71,22 +71,30 @@ annotation class ExcelWriterColumn(
     }
 
     fun ExcelWriterColumn.getValidationErrorText(): String {
-      return when {
-        this.validationListEnum != DefaultValidationListEnum::class
-        -> "One of the following values is required. " + this.validationListEnum.java.enumConstants.joinToString(
-          ", "
-        ) { it.name }
+      return with(this) {
+        when {
+          validationType == DataValidationConstraint.ValidationType.LIST -> {
+            val options = when {
+              validationListOptions.isNotEmpty() -> validationListOptions
+              validationListEnum != DefaultValidationListEnum::class -> validationListEnum.java.enumConstants
+              else -> throw ExcelWriterValidationListException()
+            }
+            "One of the following values is required. " + options.joinToString(", ")
+          }
 
-        else -> this.validationErrorText
+          else -> validationErrorText
+        }
       }
     }
 
     fun ExcelWriterColumn.getValidationPromptText(): String {
-      return when {
-        this.validationPromptText.isNotBlank() -> this.validationPromptText
-        this.getValidationErrorText().isNotBlank() -> this.getValidationErrorText()
-        this.validationPromptTitle.isNotBlank() -> this.validationPromptTitle
-        else -> this.getValidationErrorText()
+      return with(this) {
+        when {
+          validationPromptText.isNotBlank() -> validationPromptText
+          getValidationErrorText().isNotBlank() -> getValidationErrorText()
+          validationPromptTitle.isNotBlank() -> validationPromptTitle
+          else -> this.getValidationErrorText()
+        }
       }
     }
 

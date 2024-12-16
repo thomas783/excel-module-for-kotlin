@@ -81,6 +81,13 @@ data class ExcelWriterSampleDto(
   )
   val productName: String? = null,
 
+  @ExcelWriterColumn(
+    headerName = "SAMPLE LIST",
+    validationType = DataValidationConstraint.ValidationType.LIST,
+    validationListOptions = ["option1", "option2", "option3"]
+  )
+  val option: String,
+
   val extraField: String? = null,
 ) {
 
@@ -96,7 +103,8 @@ data class ExcelWriterSampleDto(
           quantity = number % 3 + 1,
           orderedAt = LocalDateTime.now().minusSeconds(number.toLong()),
           paidDate = LocalDate.now().minusDays((number % 3).toLong()),
-          productName = "Product $number"
+          productName = "Product $number",
+          option = "option${(1..3).random()}",
         )
       }
     }

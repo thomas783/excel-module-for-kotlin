@@ -6,7 +6,7 @@ import org.apache.poi.ss.usermodel.IndexedColors
 import shared.IExcelWriterCommonDto
 import shared.OrderStatus
 
-data class ExcelWriterSampleValidationTypeListErrorDto(
+data class ExcelWriterValidationTypeListErrorDto(
   @ExcelWriterColumn(
     headerName = "ORDER STATUS",
     headerCellColor = IndexedColors.RED,
@@ -14,10 +14,10 @@ data class ExcelWriterSampleValidationTypeListErrorDto(
   )
   val orderStatus: OrderStatus,
 ) {
-  companion object : IExcelWriterCommonDto<ExcelWriterSampleValidationTypeListErrorDto> {
-    override fun createSampleData(size: Int): List<ExcelWriterSampleValidationTypeListErrorDto> {
+  companion object : IExcelWriterCommonDto<ExcelWriterValidationTypeListErrorDto> {
+    override fun createSampleData(size: Int): List<ExcelWriterValidationTypeListErrorDto> {
       return (1..size).map {
-        ExcelWriterSampleValidationTypeListErrorDto(
+        ExcelWriterValidationTypeListErrorDto(
           orderStatus = OrderStatus.entries.toTypedArray().random()
         )
       }

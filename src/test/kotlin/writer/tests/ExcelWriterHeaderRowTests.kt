@@ -1,4 +1,4 @@
-package writer
+package writer.tests
 
 import excel.writer.annotation.ExcelWriterColumn
 import io.kotest.common.ExperimentalKotest
