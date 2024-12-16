@@ -2,6 +2,7 @@ package writer.tests
 
 import excel.writer.ExcelWriter
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationErrorText
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationFormula
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
 import excel.writer.exception.ExcelWriterValidationFormulaException
@@ -103,6 +104,57 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
             dataValidationsByColumn[columnIdx]?.forEach { ignoreBlankValue ->
               ignoreBlankValue shouldBe expectedIgnoreBlankValue
             }
+          }
+        }
+      }
+
+      given("validationErrorTitle is annotated") {
+        val sampleDtoValidationErrorTitleAnnotated =
+          sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
+            if (parameter !in sampleDtoValidationTypeAnnotated) null
+            else columnIdx to sampleDtoMemberPropertiesMap[parameter.name]?.validationErrorTitle
+          }.toMap()
+        val errorBoxTitles = sampleDtoValidationErrorTitleAnnotated.keys.associateWith { columnIdx ->
+          dataValidationsExceptHeaderRow.filter {
+            it.regions.cellRangeAddresses.first().containsColumn(columnIdx)
+          }.map { it.errorBoxTitle }
+        }
+
+        then("errorBoxTitles is set to annotated validationErrorTitle") {
+          sampleDtoValidationErrorTitleAnnotated.keys.forEach { columnIdx ->
+            val expectedErrorTitle = sampleDtoValidationErrorTitleAnnotated[columnIdx] ?: return@forEach
+            val actualErrorTitle = errorBoxTitles[columnIdx]?.first() ?: return@forEach
+
+            info { "Expected error title: $expectedErrorTitle" }
+            info { "Excel data actual error title: $actualErrorTitle" }
+
+            expectedErrorTitle shouldBe actualErrorTitle
+          }
+        }
+      }
+
+      given("validationErrorText is annotated") {
+        val sampleDtoValidationErrorTextAnnotated =
+          sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
+            if (parameter !in sampleDtoValidationTypeAnnotated) null
+            else columnIdx to sampleDtoMemberPropertiesMap[parameter.name]
+          }.toMap()
+        val errorBoxTexts = sampleDtoValidationErrorTextAnnotated.keys.associateWith { columnIdx ->
+          dataValidationsExceptHeaderRow.filter {
+            it.regions.cellRangeAddresses.first().containsColumn(columnIdx)
+          }.map { it.errorBoxText }
+        }
+
+        then("errorBoxTexts is set to as expected validationErrorTexts") {
+          sampleDtoValidationErrorTextAnnotated.keys.forEach { columnIdx ->
+            val expectedErrorText =
+              sampleDtoValidationErrorTextAnnotated[columnIdx]?.getValidationErrorText() ?: return@forEach
+            val actualErrorText = errorBoxTexts[columnIdx]?.first() ?: return@forEach
+
+            info { "Expected error text: $expectedErrorText" }
+            info { "Excel data actual error text: $actualErrorText" }
+
+            expectedErrorText shouldBe actualErrorText
           }
         }
       }
