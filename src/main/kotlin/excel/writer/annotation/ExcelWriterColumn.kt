@@ -35,7 +35,7 @@ annotation class ExcelWriterColumn(
   val headerName: String = "",
   val headerCellColor: IndexedColors = IndexedColors.WHITE,
   val validationType: Int = DataValidationConstraint.ValidationType.ANY,
-  val operationType: Int = DataValidationConstraint.OperatorType.IGNORED,
+  val operationType: Int = DEFAULT_OPERATION_TYPE,
   val operationFormula1: String = "",
   val operationFormula2: String = "",
   val validationIgnoreBlank: Boolean = true,
@@ -112,5 +112,6 @@ annotation class ExcelWriterColumn(
     }
 
     const val CURRENT_CELL = "CURRENT_CELL"
+    const val DEFAULT_OPERATION_TYPE = DataValidationConstraint.OperatorType.IGNORED - 1
   }
 }

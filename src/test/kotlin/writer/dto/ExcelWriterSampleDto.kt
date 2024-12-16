@@ -88,6 +88,23 @@ data class ExcelWriterSampleDto(
   )
   val option: String,
 
+  @ExcelWriterColumn(
+    headerName = "TEXT LENGTH LIMIT TO THREE",
+    validationType = DataValidationConstraint.ValidationType.TEXT_LENGTH,
+    operationType = DataValidationConstraint.OperatorType.GREATER_OR_EQUAL,
+    operationFormula1 = "3",
+  )
+  val textLengthGreaterThanThree: String? = null,
+
+  @ExcelWriterColumn(
+    headerName = "DECIMAL NUMBER",
+    validationType = DataValidationConstraint.ValidationType.DECIMAL,
+    operationType = DataValidationConstraint.OperatorType.BETWEEN,
+    operationFormula1 = "0",
+    operationFormula2 = "10"
+  )
+  val decimalBetween0And10: Double? = null,
+
   val extraField: String? = null,
 ) {
 

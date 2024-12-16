@@ -5,6 +5,8 @@ import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationErrorTex
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationFormula
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationList
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
+import excel.writer.exception.ExcelWriterValidationDecimalException
+import excel.writer.exception.ExcelWriterValidationTextLengthException
 import org.apache.poi.ss.usermodel.BorderStyle
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.DataFormat
@@ -194,6 +196,9 @@ class ExcelWriter {
           }
 
           DataValidationConstraint.ValidationType.TEXT_LENGTH -> {
+            if (excelColumn.operationType == ExcelWriterColumn.DEFAULT_OPERATION_TYPE) {
+              throw ExcelWriterValidationTextLengthException()
+            }
             val constraint = with(excelColumn) {
               helper.createTextLengthConstraint(operationType, operationFormula1, operationFormula2)
             }
@@ -202,6 +207,8 @@ class ExcelWriter {
           }
 
           DataValidationConstraint.ValidationType.DECIMAL -> {
+            if (excelColumn.operationType == ExcelWriterColumn.DEFAULT_OPERATION_TYPE)
+              throw ExcelWriterValidationDecimalException()
             val constraint = with(excelColumn) {
               helper.createDecimalConstraint(operationType, operationFormula1, operationFormula2)
             }
