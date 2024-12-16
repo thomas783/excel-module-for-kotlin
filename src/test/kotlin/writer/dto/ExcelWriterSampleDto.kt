@@ -97,13 +97,21 @@ data class ExcelWriterSampleDto(
   val textLengthGreaterThanThree: String? = null,
 
   @ExcelWriterColumn(
-    headerName = "DECIMAL NUMBER",
+    headerName = "DECIMAL BETWEEN 0 AND 10",
     validationType = DataValidationConstraint.ValidationType.DECIMAL,
     operationType = DataValidationConstraint.OperatorType.BETWEEN,
     operationFormula1 = "0",
     operationFormula2 = "10"
   )
-  val decimalBetween0And10: Double? = null,
+  val decimalBetween0And10: Double,
+
+  @ExcelWriterColumn(
+    headerName = "INTEGER GREATER THAN 5",
+    validationType = DataValidationConstraint.ValidationType.INTEGER,
+    operationType = DataValidationConstraint.OperatorType.GREATER_THAN,
+    operationFormula1 = "5"
+  )
+  val integerGreaterThan5: Int,
 
   val extraField: String? = null,
 ) {
@@ -122,6 +130,8 @@ data class ExcelWriterSampleDto(
           paidDate = LocalDate.now().minusDays((number % 3).toLong()),
           productName = "Product $number",
           option = "option${(1..3).random()}",
+          decimalBetween0And10 = (number % 10).toDouble(),
+          integerGreaterThan5 = number % 10 + 5,
         )
       }
     }

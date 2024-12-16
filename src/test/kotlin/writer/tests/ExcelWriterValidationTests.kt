@@ -8,6 +8,7 @@ import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationFormula
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
 import excel.writer.exception.ExcelWriterValidationDecimalException
 import excel.writer.exception.ExcelWriterValidationFormulaException
+import excel.writer.exception.ExcelWriterValidationIntegerException
 import excel.writer.exception.ExcelWriterValidationListException
 import excel.writer.exception.ExcelWriterValidationTextLengthException
 import io.kotest.assertions.throwables.shouldThrow
@@ -20,6 +21,7 @@ import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import writer.dto.ExcelWriterValidationTypeDecimalErrorDto
 import writer.dto.ExcelWriterValidationTypeFormulaErrorDto
+import writer.dto.ExcelWriterValidationTypeIntegerErrorDto
 import writer.dto.ExcelWriterValidationTypeListErrorDto
 import writer.dto.ExcelWriterValidationTypeTextLengthErrorDto
 import kotlin.reflect.full.findAnnotation
@@ -109,6 +111,31 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
             dataValidationsByColumn[columnIdx]?.forEach { ignoreBlankValue ->
               ignoreBlankValue shouldBe expectedIgnoreBlankValue
             }
+          }
+        }
+      }
+
+      given("validationErrorStyle is annotated") {
+        val sampleDtoValidationErrorStyleAnnotated =
+          sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
+            if (parameter !in sampleDtoValidationTypeAnnotated) null
+            else columnIdx to sampleDtoMemberPropertiesMap[parameter.name]?.validationErrorStyle
+          }.toMap()
+        val errorBoxStyles = sampleDtoValidationErrorStyleAnnotated.keys.associateWith { columnIdx ->
+          dataValidationsExceptHeaderRow.filter {
+            it.regions.cellRangeAddresses.first().containsColumn(columnIdx)
+          }.map { it.errorStyle }
+        }
+
+        then("errorStyles are set to annotated validationErrorStyles") {
+          sampleDtoValidationErrorStyleAnnotated.keys.forEach { columnIdx ->
+            val expectedErrorStyle = sampleDtoValidationErrorStyleAnnotated[columnIdx] ?: return@forEach
+            val actualErrorStyle = errorBoxStyles[columnIdx]?.first() ?: return@forEach
+
+            info { "Expected error style: $expectedErrorStyle" }
+            info { "Excel data actual error style: $actualErrorStyle" }
+
+            expectedErrorStyle shouldBe actualErrorStyle
           }
         }
       }
@@ -372,6 +399,53 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           then("ExcelWriterValidationDecimalException is thrown") {
             shouldThrow<ExcelWriterValidationDecimalException> {
               ExcelWriter.createWorkbook(validationDecimalErrorDto, "sample-validation-type-decimal-error")
+            }.also { info { it } }
+          }
+        }
+      }
+
+      given("validationType is integer") {
+        given("operationType is annotated") {
+          val sampleDtoValidationIntegerAnnotated =
+            sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
+              val excelWriterColumn = sampleDtoMemberPropertiesMap[parameter.name]
+              if (parameter !in sampleDtoValidationTypeAnnotated ||
+                excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.INTEGER ||
+                excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE
+              ) null
+              else columnIdx to excelWriterColumn
+            }.toMap()
+          val dataValidationsByColumn = sampleDtoValidationIntegerAnnotated.keys.associateWith { columnIdx ->
+            dataValidationsExceptHeaderRow.filter {
+              it.regions.cellRangeAddresses.first().containsColumn(columnIdx)
+            }.map { it.validationConstraint }
+          }
+          then("data validation is set to annotated") {
+            sampleDtoValidationIntegerAnnotated.keys.forEach { columnIdx ->
+              val excelWriterColumn = sampleDtoValidationIntegerAnnotated[columnIdx] ?: return@forEach
+              val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
+
+              with(excelWriterColumn) {
+                info { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+              }
+              with(dataValidation) {
+                info { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+              }
+
+              dataValidation.operator shouldBe excelWriterColumn.operationType
+              dataValidation.formula1 shouldBe excelWriterColumn.operationFormula1
+              dataValidation.formula2 shouldBe excelWriterColumn.operationFormula2
+            }
+          }
+        }
+
+        given("operationType is not annotated") {
+          val validationIntegerErrorDto =
+            ExcelWriterValidationTypeIntegerErrorDto.createSampleData(size = sampleDataSize)
+
+          then("ExcelWriterValidationIntegerException is thrown") {
+            shouldThrow<ExcelWriterValidationIntegerException> {
+              ExcelWriter.createWorkbook(validationIntegerErrorDto, "sample-validation-type-integer-error")
             }.also { info { it } }
           }
         }

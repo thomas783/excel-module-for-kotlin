@@ -12,6 +12,10 @@ class ExcelWriterValidationDecimalException(
   message: String = "ExcelColumn with operationType is required"
 ) : ExcelWriterValidationTypeException(message)
 
+class ExcelWriterValidationIntegerException(
+  message: String = "ExcelColumn with operationType is required"
+) : ExcelWriterValidationTypeException(message)
+
 class ExcelWriterValidationFormulaException(
   message: String = "ExcelColumn with validationFormula is required",
 ) : ExcelWriterValidationTypeException(message)
