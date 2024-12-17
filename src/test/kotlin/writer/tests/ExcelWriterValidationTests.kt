@@ -39,9 +39,9 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
 
   given("ExcelWriterColumn Annotation") {
     val sheet = baseTest.workbook.getSheetAt(0)
-    val sampleDtoMemberPropertiesMap = sampleDataKClass.memberProperties
-      .filter { it.hasAnnotation<ExcelWriterColumn>() }
-      .associate { it.name to it.findAnnotation<ExcelWriterColumn>() }
+    val sampleDtoMemberPropertiesMap =
+      sampleDataKClass.memberProperties.filter { it.hasAnnotation<ExcelWriterColumn>() }
+        .associate { it.name to it.findAnnotation<ExcelWriterColumn>() }
     val sampleDtoConstructorParameters = sampleDataKClass.constructors.flatMap {
       it.parameters
     }
@@ -70,8 +70,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           sampleDtoMemberPropertiesMap[parameter.name]?.getValidationPromptText()
         }
         val headerRowCellValidationPromptTexts =
-          sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
-            .map { it.promptBoxText }
+          sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }.map { it.promptBoxText }
 
         debug { "${sampleDataKClass.simpleName} constructor validation prompt texts in order: $sampleDtoValidationPromptTextsInOrder" }
         debug { "Excel header row cell validation prompt texts: $headerRowCellValidationPromptTexts" }
@@ -196,9 +195,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           val sampleDtoValidationListOptionsAnnotated =
             sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
               val validationListOptions = sampleDtoMemberPropertiesMap[parameter.name]?.validationListOptions
-              if (parameter !in sampleDtoValidationTypeAnnotated ||
-                (validationListOptions != null && validationListOptions.isEmpty())
-              ) null
+              if (parameter !in sampleDtoValidationTypeAnnotated || (validationListOptions != null && validationListOptions.isEmpty())) null
               else columnIdx to sampleDtoMemberPropertiesMap[parameter.name]?.validationListOptions
             }.toMap()
           val dataValidationsByColumn = sampleDtoValidationListOptionsAnnotated.keys.associateWith { columnIdx ->
@@ -225,9 +222,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           val sampleDtoValidationListEnumAnnotated =
             sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
               val validationListEnum = sampleDtoMemberPropertiesMap[parameter.name]?.validationListEnum
-              if (parameter !in sampleDtoValidationTypeAnnotated ||
-                (validationListEnum != null && validationListEnum == ExcelWriterColumn.DefaultValidationListEnum::class)
-              ) null
+              if (parameter !in sampleDtoValidationTypeAnnotated || (validationListEnum != null && validationListEnum == ExcelWriterColumn.DefaultValidationListEnum::class)) null
               else columnIdx to sampleDtoMemberPropertiesMap[parameter.name]?.validationListEnum?.java?.enumConstants?.map { it.name }
             }.toMap()
           val dataValidationsByColumn = sampleDtoValidationListEnumAnnotated.keys.associateWith { columnIdx ->
@@ -251,8 +246,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
         }
 
         given("if validationListOptions nor validationListEnum is not annotated") {
-          val validationListErrorDto =
-            ExcelWriterValidationTypeListErrorDto.createSampleData(size = sampleDataSize)
+          val validationListErrorDto = ExcelWriterValidationTypeListErrorDto.createSampleData(size = sampleDataSize)
 
           then("ExcelWriterValidationListException is thrown") {
             shouldThrow<ExcelWriterValidationListException> {
@@ -267,9 +261,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           val sampleDtoValidationFormulaAnnotated =
             sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
               val validationFormula = sampleDtoMemberPropertiesMap[parameter.name]?.validationFormula
-              if (parameter !in sampleDtoValidationTypeAnnotated ||
-                (validationFormula != null && validationFormula.isBlank())
-              ) null
+              if (parameter !in sampleDtoValidationTypeAnnotated || (validationFormula != null && validationFormula.isBlank())) null
               else columnIdx to sampleDtoMemberPropertiesMap[parameter.name]
             }.toMap()
           val dataValidationsByColumn = sampleDtoValidationFormulaAnnotated.keys.associateWith { columnIdx ->
@@ -313,10 +305,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           val sampleDtoValidationTextLengthAnnotated =
             sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
               val excelWriterColumn = sampleDtoMemberPropertiesMap[parameter.name]
-              if (parameter !in sampleDtoValidationTypeAnnotated ||
-                excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.TEXT_LENGTH ||
-                excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE
-              ) null
+              if (parameter !in sampleDtoValidationTypeAnnotated || excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.TEXT_LENGTH || excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE) null
               else columnIdx to excelWriterColumn
             }.toMap()
           val dataValidationsByColumn = sampleDtoValidationTextLengthAnnotated.keys.associateWith { columnIdx ->
@@ -330,11 +319,11 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val excelWriterColumn = sampleDtoValidationTextLengthAnnotated[columnIdx] ?: return@forEach
               val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
 
-              with(excelWriterColumn) {
-                debug { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+              debug {
+                with(excelWriterColumn) { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
               }
-              with(dataValidation) {
-                debug { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+              debug {
+                with(dataValidation) { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
               }
 
               dataValidation.operator shouldBe excelWriterColumn.operationType
@@ -361,10 +350,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           val sampleDtoValidationDecimalAnnotated =
             sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
               val excelWriterColumn = sampleDtoMemberPropertiesMap[parameter.name]
-              if (parameter !in sampleDtoValidationTypeAnnotated ||
-                excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.DECIMAL ||
-                excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE
-              ) null
+              if (parameter !in sampleDtoValidationTypeAnnotated || excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.DECIMAL || excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE) null
               else columnIdx to excelWriterColumn
             }.toMap()
           val dataValidationsByColumn = sampleDtoValidationDecimalAnnotated.keys.associateWith { columnIdx ->
@@ -378,11 +364,11 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val excelWriterColumn = sampleDtoValidationDecimalAnnotated[columnIdx] ?: return@forEach
               val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
 
-              with(excelWriterColumn) {
-                debug { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+              debug {
+                with(excelWriterColumn) { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
               }
-              with(dataValidation) {
-                debug { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+              debug {
+                with(dataValidation) { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
               }
 
               dataValidation.operator shouldBe excelWriterColumn.operationType
@@ -409,10 +395,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           val sampleDtoValidationIntegerAnnotated =
             sampleDtoConstructorParameters.mapIndexedNotNull { columnIdx, parameter ->
               val excelWriterColumn = sampleDtoMemberPropertiesMap[parameter.name]
-              if (parameter !in sampleDtoValidationTypeAnnotated ||
-                excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.INTEGER ||
-                excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE
-              ) null
+              if (parameter !in sampleDtoValidationTypeAnnotated || excelWriterColumn?.validationType != DataValidationConstraint.ValidationType.INTEGER || excelWriterColumn.operationType == DEFAULT_OPERATION_TYPE) null
               else columnIdx to excelWriterColumn
             }.toMap()
           val dataValidationsByColumn = sampleDtoValidationIntegerAnnotated.keys.associateWith { columnIdx ->
@@ -425,11 +408,11 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val excelWriterColumn = sampleDtoValidationIntegerAnnotated[columnIdx] ?: return@forEach
               val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
 
-              with(excelWriterColumn) {
-                debug { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+              debug {
+                with(excelWriterColumn) { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
               }
-              with(dataValidation) {
-                debug { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+              debug {
+                with(dataValidation) { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
               }
 
               dataValidation.operator shouldBe excelWriterColumn.operationType
