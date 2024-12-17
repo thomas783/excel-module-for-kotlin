@@ -5,7 +5,6 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.info
 import io.kotest.matchers.collections.shouldBeIn
-import io.kotest.matchers.shouldBe
 import org.apache.poi.ss.usermodel.CellType
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
@@ -21,6 +20,7 @@ import kotlin.reflect.jvm.jvmErasure
 class ExcelWriterCellTests : BehaviorSpec({
   val sampleDataSize = 1000
   val sampleDtoKClass = ExcelWriterSampleDto::class
+  val sampleData = ExcelWriterSampleDto.createSampleData(sampleDataSize)
   val baseTest = setExcelWriterCommonSpec<ExcelWriterSampleDto.Companion, ExcelWriterSampleDto>(
     sampleDataSize = sampleDataSize,
     path = "sample-cell-value-type-check",
@@ -36,8 +36,8 @@ class ExcelWriterCellTests : BehaviorSpec({
       sampleDtoMemberPropertiesMap[parameter.name] != null
     }.map { Triple(it.name, it.type.jvmErasure, it.type.isMarkedNullable) }
 
-    then("ExcelWriterColumn annotated column type is set to expected type") {
-      sampleDtoConstructorReturnTypeInOrder.forEachIndexed { columnIdx, (propertyName, kClass,isMarkedNullable) ->
+    then("excel cell type is set to expected type") {
+      sampleDtoConstructorReturnTypeInOrder.forEachIndexed { columnIdx, (propertyName, kClass, isMarkedNullable) ->
         (1..sampleDataSize).forEach { rowIdx ->
           val cell = sheet.getRow(rowIdx).getCell(columnIdx)
           val actualCellType = cell.cellType
@@ -49,7 +49,8 @@ class ExcelWriterCellTests : BehaviorSpec({
               else -> CellType.STRING
             }
           }
-          val expectedCellTypes = if (isMarkedNullable) setOf(CellType.BLANK, expectedCellType) else setOf(expectedCellType)
+          val expectedCellTypes =
+            if (isMarkedNullable) setOf(CellType.BLANK, expectedCellType) else setOf(expectedCellType)
 
           info { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
           info { "Property Name: $propertyName Expected Cell Types: $expectedCellTypes" }
@@ -60,8 +61,8 @@ class ExcelWriterCellTests : BehaviorSpec({
       }
     }
 
-    then("ExcelWriterData is set to expected format") {
-      sampleDtoConstructorReturnTypeInOrder.forEachIndexed { columnIdx, (propertyName, kClass,isMarkedNullable) ->
+    then("excel cell is set to expected format") {
+      sampleDtoConstructorReturnTypeInOrder.forEachIndexed { columnIdx, (propertyName, kClass, isMarkedNullable) ->
         (1..sampleDataSize).forEach { rowIdx ->
           val cell = sheet.getRow(rowIdx).getCell(columnIdx)
           val cellDataFormat = cell.cellStyle.dataFormatString
@@ -84,6 +85,35 @@ class ExcelWriterCellTests : BehaviorSpec({
           info { "Actual Data Format: $cellDataFormat" }
 
           cellDataFormat shouldBeIn expectedDataFormats
+        }
+      }
+    }
+
+    then("excel cell data is set to expected value") {
+      sampleDtoConstructorReturnTypeInOrder.forEachIndexed { columnIdx, (propertyName, kClass, isMarkedNullable) ->
+        (1..sampleDataSize).forEach { rowIdx ->
+          val cell = sheet.getRow(rowIdx).getCell(columnIdx)
+          val expectedValue = sampleData[rowIdx - 1].let { sampleDto ->
+            sampleDto.javaClass.kotlin.memberProperties.first { it.name == propertyName }.get(sampleDto)
+          }.let {
+            if (it is Enum<*>) it.name else it
+          }
+          val expectedValues = if (isMarkedNullable) setOf("", expectedValue) else setOf(expectedValue)
+          val actualValue = when (kClass) {
+            String::class -> cell.richStringCellValue.string
+            Int::class -> cell.numericCellValue.toInt()
+            Long::class -> cell.numericCellValue.toLong()
+            Double::class -> cell.numericCellValue
+            LocalDate::class -> cell.localDateTimeCellValue.toLocalDate()
+            LocalDateTime::class -> cell.localDateTimeCellValue
+            else -> cell.stringCellValue
+          }
+
+          info { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
+          info { "PropertyName: $propertyName, Expected cell values: $expectedValues" }
+          info { "Actual cell value: $actualValue" }
+
+          actualValue shouldBeIn expectedValues
         }
       }
     }
