@@ -1,6 +1,7 @@
 package shared
 
 import excel.writer.ExcelWriter
+import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.core.spec.Spec
 import org.apache.poi.ss.usermodel.Workbook
@@ -9,6 +10,7 @@ import java.io.File
 import java.io.FileOutputStream
 import kotlin.reflect.full.createInstance
 
+@Ignored
 class ExcelWriterBaseTests(
   val sampleDataSize: Int = 1000,
   val sheetName: String,

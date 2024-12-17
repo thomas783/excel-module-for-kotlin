@@ -3,7 +3,7 @@ package writer.tests
 import excel.writer.annotation.ExcelWriterColumn
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.engine.test.logging.info
+import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.collections.shouldBeIn
 import org.apache.poi.ss.usermodel.CellType
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
@@ -52,9 +52,9 @@ class ExcelWriterCellTests : BehaviorSpec({
           val expectedCellTypes =
             if (isMarkedNullable) setOf(CellType.BLANK, expectedCellType) else setOf(expectedCellType)
 
-          info { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
-          info { "Property Name: $propertyName Expected Cell Types: $expectedCellTypes" }
-          info { "Actual Type: $actualCellType" }
+          debug { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
+          debug { "Property Name: $propertyName Expected Cell Types: $expectedCellTypes" }
+          debug { "Actual Type: $actualCellType" }
 
           actualCellType shouldBeIn expectedCellTypes
         }
@@ -80,9 +80,9 @@ class ExcelWriterCellTests : BehaviorSpec({
           val expectedDataFormats = if (isMarkedNullable) setOf("General", expectedDataFormat)
           else setOf(expectedDataFormat)
 
-          info { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
-          info { "Property Name: $propertyName, Expected Data Formats: $expectedDataFormats" }
-          info { "Actual Data Format: $cellDataFormat" }
+          debug { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
+          debug { "Property Name: $propertyName, Expected Data Formats: $expectedDataFormats" }
+          debug { "Actual Data Format: $cellDataFormat" }
 
           cellDataFormat shouldBeIn expectedDataFormats
         }
@@ -109,9 +109,9 @@ class ExcelWriterCellTests : BehaviorSpec({
             else -> cell.stringCellValue
           }
 
-          info { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
-          info { "PropertyName: $propertyName, Expected cell values: $expectedValues" }
-          info { "Actual cell value: $actualValue" }
+          debug { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
+          debug { "PropertyName: $propertyName, Expected cell values: $expectedValues" }
+          debug { "Actual cell value: $actualValue" }
 
           actualValue shouldBeIn expectedValues
         }

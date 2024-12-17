@@ -14,16 +14,16 @@ import excel.writer.exception.ExcelWriterValidationTextLengthException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.engine.test.logging.info
+import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.shouldBe
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
-import writer.dto.ExcelWriterValidationTypeDecimalErrorDto
-import writer.dto.ExcelWriterValidationTypeFormulaErrorDto
-import writer.dto.ExcelWriterValidationTypeIntegerErrorDto
-import writer.dto.ExcelWriterValidationTypeListErrorDto
-import writer.dto.ExcelWriterValidationTypeTextLengthErrorDto
+import writer.dto.validationtypeerror.ExcelWriterValidationTypeDecimalErrorDto
+import writer.dto.validationtypeerror.ExcelWriterValidationTypeFormulaErrorDto
+import writer.dto.validationtypeerror.ExcelWriterValidationTypeIntegerErrorDto
+import writer.dto.validationtypeerror.ExcelWriterValidationTypeListErrorDto
+import writer.dto.validationtypeerror.ExcelWriterValidationTypeTextLengthErrorDto
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties
@@ -55,8 +55,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
             .map { it.promptBoxTitle }
 
-        info { "${sampleDataKClass.simpleName} constructor validation prompt titles in order: $sampleDtoValidationPromptTitlesInOrder" }
-        info { "Excel header row cell validation prompt titles: $headerRowCellValidationPromptTitles" }
+        debug { "${sampleDataKClass.simpleName} constructor validation prompt titles in order: $sampleDtoValidationPromptTitlesInOrder" }
+        debug { "Excel header row cell validation prompt titles: $headerRowCellValidationPromptTitles" }
 
         headerRowCellValidationPromptTitles.indices.forEach {
           headerRowCellValidationPromptTitles[it] shouldBe sampleDtoValidationPromptTitlesInOrder[it]
@@ -73,8 +73,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           sheet.dataValidations.filter { it.regions.cellRangeAddresses.first().containsRow(0) }
             .map { it.promptBoxText }
 
-        info { "${sampleDataKClass.simpleName} constructor validation prompt texts in order: $sampleDtoValidationPromptTextsInOrder" }
-        info { "Excel header row cell validation prompt texts: $headerRowCellValidationPromptTexts" }
+        debug { "${sampleDataKClass.simpleName} constructor validation prompt texts in order: $sampleDtoValidationPromptTextsInOrder" }
+        debug { "Excel header row cell validation prompt texts: $headerRowCellValidationPromptTexts" }
 
         headerRowCellValidationPromptTexts.indices.forEach {
           headerRowCellValidationPromptTexts[it] shouldBe sampleDtoValidationPromptTextsInOrder[it]
@@ -104,8 +104,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
             }.map { it.emptyCellAllowed }
           }
 
-          info { "${sampleDataKClass.simpleName} constructor validation ignore blank values in order: $sampleDtoValidationIgnoreBlankValues" }
-          info { "Excel data validations by column: $dataValidationsByColumn" }
+          debug { "${sampleDataKClass.simpleName} constructor validation ignore blank values in order: $sampleDtoValidationIgnoreBlankValues" }
+          debug { "Excel data validations by column: $dataValidationsByColumn" }
 
           sampleDtoValidationIgnoreBlankValues.map { (columnIdx, expectedIgnoreBlankValue) ->
             dataValidationsByColumn[columnIdx]?.forEach { ignoreBlankValue ->
@@ -132,8 +132,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
             val expectedErrorStyle = sampleDtoValidationErrorStyleAnnotated[columnIdx] ?: return@forEach
             val actualErrorStyle = errorBoxStyles[columnIdx]?.first() ?: return@forEach
 
-            info { "Expected error style: $expectedErrorStyle" }
-            info { "Excel data actual error style: $actualErrorStyle" }
+            debug { "Expected error style: $expectedErrorStyle" }
+            debug { "Excel data actual error style: $actualErrorStyle" }
 
             expectedErrorStyle shouldBe actualErrorStyle
           }
@@ -157,8 +157,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
             val expectedErrorTitle = sampleDtoValidationErrorTitleAnnotated[columnIdx] ?: return@forEach
             val actualErrorTitle = errorBoxTitles[columnIdx]?.first() ?: return@forEach
 
-            info { "Expected error title: $expectedErrorTitle" }
-            info { "Excel data actual error title: $actualErrorTitle" }
+            debug { "Expected error title: $expectedErrorTitle" }
+            debug { "Excel data actual error title: $actualErrorTitle" }
 
             expectedErrorTitle shouldBe actualErrorTitle
           }
@@ -183,8 +183,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               sampleDtoValidationErrorTextAnnotated[columnIdx]?.getValidationErrorText() ?: return@forEach
             val actualErrorText = errorBoxTexts[columnIdx]?.first() ?: return@forEach
 
-            info { "Expected error text: $expectedErrorText" }
-            info { "Excel data actual error text: $actualErrorText" }
+            debug { "Expected error text: $expectedErrorText" }
+            debug { "Excel data actual error text: $actualErrorText" }
 
             expectedErrorText shouldBe actualErrorText
           }
@@ -213,8 +213,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val explicitValidationListOptions =
                 dataValidationsByColumn[columnIdx]?.first()?.explicitListValues ?: return@forEach
 
-              info { "Validation list options: ${validationListOptions.joinToString(",")}" }
-              info { "Explicit validation list options: ${explicitValidationListOptions.joinToString(",")}" }
+              debug { "Validation list options: ${validationListOptions.joinToString(",")}" }
+              debug { "Explicit validation list options: ${explicitValidationListOptions.joinToString(",")}" }
 
               validationListOptions shouldBe explicitValidationListOptions
             }
@@ -242,8 +242,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val explicitValidationListEnum =
                 dataValidationsByColumn[columnIdx]?.first()?.explicitListValues ?: return@forEach
 
-              info { "Validation enum list options: ${validationListEnum.joinToString(",")}" }
-              info { "Explicit validation list options: ${explicitValidationListEnum.joinToString(",")}" }
+              debug { "Validation enum list options: ${validationListEnum.joinToString(",")}" }
+              debug { "Explicit validation list options: ${explicitValidationListEnum.joinToString(",")}" }
 
               validationListEnum shouldBe explicitValidationListEnum
             }
@@ -257,7 +257,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           then("ExcelWriterValidationListException is thrown") {
             shouldThrow<ExcelWriterValidationListException> {
               ExcelWriter.createWorkbook(validationListErrorDto, "sample-validation-type-list-error")
-            }.also { info { it } }
+            }.also { debug { it } }
           }
         }
       }
@@ -287,8 +287,8 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
                 val expectedFormula = annotatedValidationFormula.getValidationFormula(columnIdx, rowIdx)
                 val actualFormula = validationFormulas[rowIdx - 1].formula1
 
-                info { "Expected formula: $expectedFormula" }
-                info { "Actual formula: $actualFormula" }
+                debug { "Expected formula: $expectedFormula" }
+                debug { "Actual formula: $actualFormula" }
 
                 expectedFormula shouldBe actualFormula
               }
@@ -303,7 +303,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           then("ExcelWriterValidationFormulaException is thrown") {
             shouldThrow<ExcelWriterValidationFormulaException> {
               ExcelWriter.createWorkbook(validationFormulaErrorDto, "sample-validation-type-formula-error")
-            }.also { info { it } }
+            }.also { debug { it } }
           }
         }
       }
@@ -331,10 +331,10 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
 
               with(excelWriterColumn) {
-                info { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+                debug { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
               }
               with(dataValidation) {
-                info { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+                debug { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
               }
 
               dataValidation.operator shouldBe excelWriterColumn.operationType
@@ -351,7 +351,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           then("ExcelWriterValidationTextLengthException is thrown") {
             shouldThrow<ExcelWriterValidationTextLengthException> {
               ExcelWriter.createWorkbook(validationTextLengthErrorDto, "sample-validation-type-text-length-error")
-            }.also { info { it } }
+            }.also { debug { it } }
           }
         }
       }
@@ -379,10 +379,10 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
 
               with(excelWriterColumn) {
-                info { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+                debug { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
               }
               with(dataValidation) {
-                info { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+                debug { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
               }
 
               dataValidation.operator shouldBe excelWriterColumn.operationType
@@ -399,7 +399,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           then("ExcelWriterValidationDecimalException is thrown") {
             shouldThrow<ExcelWriterValidationDecimalException> {
               ExcelWriter.createWorkbook(validationDecimalErrorDto, "sample-validation-type-decimal-error")
-            }.also { info { it } }
+            }.also { debug { it } }
           }
         }
       }
@@ -426,10 +426,10 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
               val dataValidation = dataValidationsByColumn[columnIdx]?.first() ?: return@forEach
 
               with(excelWriterColumn) {
-                info { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
+                debug { "Expected data validation - operationType: $operationType, operationFormula1: $operationFormula1, operationFormula2: $operationFormula2" }
               }
               with(dataValidation) {
-                info { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
+                debug { "Actual data validation - operationType: $operator, operationFormula1: $formula1, operationFormula2: $formula2" }
               }
 
               dataValidation.operator shouldBe excelWriterColumn.operationType
@@ -446,7 +446,7 @@ internal class ExcelWriterValidationTests : BehaviorSpec({
           then("ExcelWriterValidationIntegerException is thrown") {
             shouldThrow<ExcelWriterValidationIntegerException> {
               ExcelWriter.createWorkbook(validationIntegerErrorDto, "sample-validation-type-integer-error")
-            }.also { info { it } }
+            }.also { debug { it } }
           }
         }
       }

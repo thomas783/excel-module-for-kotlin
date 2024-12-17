@@ -5,6 +5,7 @@ import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationErrorTex
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationFormula
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationList
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
+import excel.writer.annotation.ExcelWriterFreezePane
 import excel.writer.exception.ExcelWriterValidationDecimalException
 import excel.writer.exception.ExcelWriterValidationIntegerException
 import excel.writer.exception.ExcelWriterValidationTextLengthException
@@ -65,6 +66,12 @@ class ExcelWriter {
       }
     }
 
+    inline fun <reified T : Any> SXSSFSheet.setFreezePane() {
+      T::class.findAnnotation<ExcelWriterFreezePane>()?.let {
+        createFreezePane(it.colSplit, it.rowSplit)
+      }
+    }
+
     inline fun <reified T : Any> createWorkbook(data: Collection<T>, sheetName: String): SXSSFWorkbook {
       val memberProperties = T::class.memberProperties.filter {
         it.findAnnotation<ExcelWriterColumn>() != null
@@ -79,6 +86,7 @@ class ExcelWriter {
         createSheet(sheetName).apply {
           // tracking all columns for auto-sizing takes to long
           untrackAllColumnsForAutoSizing()
+          setFreezePane<T>()
           setHeaderRows(parameters)
           setValidationConstraints(parameters, data.size)
           setBodyData(data, parameters)

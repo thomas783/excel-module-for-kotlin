@@ -1,9 +1,10 @@
 package writer.tests
 
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterFreezePane
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
-import io.kotest.engine.test.logging.info
+import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.shouldBe
 import org.apache.poi.ss.usermodel.IndexedColors
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
@@ -19,6 +20,21 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
     sampleDataSize = 1000,
     path = "sample-header-row",
   )
+
+  given("ExcelWriterFreezePane Annotation") {
+    val sheet = baseTest.workbook.getSheetAt(0)
+
+    then("freeze pane is set to annotated row and column") {
+      val expectedFreezePane = ExcelWriterSampleDto::class.findAnnotation<ExcelWriterFreezePane>()
+      val actualFreezePane = sheet.paneInformation
+
+      debug { "Expected Freeze Pane - Row: ${expectedFreezePane?.rowSplit}, Column: ${expectedFreezePane?.colSplit}" }
+      debug { "Actual Freeze Pane - Row: ${actualFreezePane.horizontalSplitTopRow}, Column: ${actualFreezePane.verticalSplitLeftColumn}" }
+
+      expectedFreezePane?.rowSplit shouldBe actualFreezePane.horizontalSplitTopRow
+      expectedFreezePane?.colSplit shouldBe actualFreezePane.verticalSplitLeftColumn
+    }
+  }
 
   given("ExcelWriterColumn Annotation") {
     val sheet = baseTest.workbook.getSheetAt(0)
@@ -39,8 +55,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
           it.hasAnnotation<ExcelWriterColumn>()
         }.size
 
-        info { "${sampleDataKClass.simpleName} ExcelWriterColumn annotation provided properties count: $excelWriterSampleDtoPropertiesCounts" }
-        info { "Excel file header row cell count: ${headerRow.physicalNumberOfCells}" }
+        debug { "${sampleDataKClass.simpleName} ExcelWriterColumn annotation provided properties count: $excelWriterSampleDtoPropertiesCounts" }
+        debug { "Excel file header row cell count: ${headerRow.physicalNumberOfCells}" }
 
         headerRow.physicalNumberOfCells shouldBe excelWriterSampleDtoPropertiesCounts
       }
@@ -52,8 +68,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
           headerName?.ifBlank { parameter.name }
         }
 
-        info { "${sampleDataKClass.simpleName} constructor header names in order: $sampleDtoHeaderNamesInOrder" }
-        info { "Excel file header row cell values: $headerRowCellValues" }
+        debug { "${sampleDataKClass.simpleName} constructor header names in order: $sampleDtoHeaderNamesInOrder" }
+        debug { "Excel file header row cell values: $headerRowCellValues" }
 
         (0 until headerRow.physicalNumberOfCells).forEach { columnIdx ->
           headerRowCellValues[columnIdx] shouldBe sampleDtoHeaderNamesInOrder[columnIdx]
@@ -67,8 +83,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
           it.findAnnotation<ExcelWriterColumn>()?.headerName
         }.filter { it.isNotBlank() }
 
-        info { "Members with header name annotated: $memberNamesWithHeaderNameAnnotated" }
-        info { "Excel header row cell values: $headerRowCellValues" }
+        debug { "Members with header name annotated: $memberNamesWithHeaderNameAnnotated" }
+        debug { "Excel header row cell values: $headerRowCellValues" }
 
         headerRowCellValues.containsAll(memberNamesWithHeaderNameAnnotated) shouldBe true
       }
@@ -81,8 +97,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
           excelWriterAnnotation != null && excelWriterAnnotation.headerName.isBlank()
         }.map { it.name }
 
-        info { "Members without header name annotated: $memberNamesWithoutHeaderNameAnnotated" }
-        info { "Excel header row cell values: $headerRowCellValues" }
+        debug { "Members without header name annotated: $memberNamesWithoutHeaderNameAnnotated" }
+        debug { "Excel header row cell values: $headerRowCellValues" }
 
         headerRowCellValues.containsAll(memberNamesWithoutHeaderNameAnnotated) shouldBe true
       }
@@ -98,8 +114,8 @@ internal class ExcelWriterHeaderRowTests : BehaviorSpec({
           IndexedColors.fromInt(colorIndex.toInt())
         }
 
-        info { "${sampleDataKClass.simpleName} constructor header cell colors in order: $sampleDtoHeaderCellColorsInOrder" }
-        info { "Excel header row cell colors: $headerRowCellStyles" }
+        debug { "${sampleDataKClass.simpleName} constructor header cell colors in order: $sampleDtoHeaderCellColorsInOrder" }
+        debug { "Excel header row cell colors: $headerRowCellStyles" }
 
         headerRowCellStyles.indices.forEach {
           headerRowCellStyles[it] shouldBe sampleDtoHeaderCellColorsInOrder[it]

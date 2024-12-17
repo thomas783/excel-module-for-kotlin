@@ -1,6 +1,7 @@
 package writer.dto
 
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterFreezePane
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -9,6 +10,7 @@ import shared.OrderStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@ExcelWriterFreezePane(rowSplit = 1)
 data class ExcelWriterSampleDto(
   @ExcelWriterColumn(
     headerName = "COUNTRY CODE",

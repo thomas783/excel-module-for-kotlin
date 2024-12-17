@@ -9,10 +9,10 @@ import io.kotest.engine.test.logging.LogEntry
 import io.kotest.engine.test.logging.LogExtension
 
 object LoggingConfig : AbstractProjectConfig() {
-  override val logLevel = LogLevel.Info
+  override val logLevel = if (isDebugMode()) LogLevel.Debug else LogLevel.Info
 
   @OptIn(ExperimentalKotest::class)
-  override fun extensions(): List<Extension> = listOf(
+  override fun extensions(): List<Extension> = super.extensions() + listOf(
     object : LogExtension {
       override suspend fun handleLogs(testCase: TestCase, logs: List<LogEntry>) {
         logs.forEach {
@@ -21,4 +21,8 @@ object LoggingConfig : AbstractProjectConfig() {
       }
     }
   )
+
+  private fun isDebugMode(): Boolean {
+    return System.getenv("DEBUG_MODE") == "true" || System.getProperty("debug") == "true"
+  }
 }
