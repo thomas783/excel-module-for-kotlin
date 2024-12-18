@@ -10,21 +10,21 @@ import kotlin.reflect.KClass
 
 /**
  * Annotation for Excel writer column options
- * @param headerName Customized headerName for Excel column. If not provided, it will use the property name itself
- * @param headerCellColor Customized header cell color. Default [IndexedColors.WHITE]
- * @param validationType [DataValidationConstraint.ValidationType]. Default [DataValidationConstraint.ValidationType.ANY]
- * @param operationType [DataValidationConstraint.OperatorType]. Default [DataValidationConstraint.OperatorType.IGNORED]
- * @param operationFormula1 Customized operation formula 1
- * @param operationFormula2 Customized operation formula 2
- * @param validationIgnoreBlank Ignore blank cell for validation. Use for nullable fields. Default true
- * @param validationListOptions Array of validation list options
- * @param validationListEnum Enum class for validation list options
- * @param validationPromptTitle Title for validation if error occurs
- * @param validationPromptText Text for validation if error occurs
- * @param validationFormula Customized validation formula
- * @param validationErrorStyle Error style for validation [STOP, WARNING, INFO]
- * @param validationErrorTitle Title for validation if error occurs
- * @param validationErrorText Text for validation if error occurs
+ * @property headerName Customized headerName for Excel column. If not provided, it will use the property name itself
+ * @property headerCellColor Customized header cell color. Default [IndexedColors.WHITE]
+ * @property validationType [DataValidationConstraint.ValidationType]. Default [DataValidationConstraint.ValidationType.ANY]
+ * @property operationType [DataValidationConstraint.OperatorType]. Default [DataValidationConstraint.OperatorType.IGNORED]
+ * @property operationFormula1 Customized operation formula 1
+ * @property operationFormula2 Customized operation formula 2
+ * @property validationIgnoreBlank Ignore blank cell for validation. Use for nullable fields. Default true
+ * @property validationListOptions Array of validation list options
+ * @property validationListEnum Enum class for validation list options
+ * @property validationPromptTitle Title for validation if error occurs
+ * @property validationPromptText Text for validation if error occurs
+ * @property validationFormula Customized validation formula
+ * @property validationErrorStyle Error style for validation [STOP, WARNING, INFO]
+ * @property validationErrorTitle Title for validation if error occurs
+ * @property validationErrorText Text for validation if error occurs
  * @throws ExcelWriterException if validationListOptions or validationListEnum is not provided
  * @see IndexedColors
  */
@@ -112,6 +112,7 @@ annotation class ExcelWriterColumn(
     }
 
     const val CURRENT_CELL = "CURRENT_CELL"
+
     const val DEFAULT_OPERATION_TYPE = DataValidationConstraint.OperatorType.IGNORED - 1
   }
 }
