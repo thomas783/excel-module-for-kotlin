@@ -1,5 +1,6 @@
 package excel.reader
 
+import excel.reader.annotation.ExcelReaderHeader
 import excel.reader.exception.ExcelReaderException
 import org.apache.commons.collections4.ListUtils
 import org.apache.poi.ss.usermodel.CellType
@@ -10,6 +11,8 @@ import java.io.File
 import java.util.*
 import java.util.function.Function
 import kotlin.reflect.KMutableProperty1
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.memberProperties
 
 class ExcelReader {
 
@@ -69,6 +72,47 @@ class ExcelReader {
 
     fun isRowAllBlank(row: Row): Boolean {
       return row.cellIterator().asSequence().all { it.cellType == CellType.BLANK }
+    }
+
+    inline fun <reified T : Any> getHeader(rowNum: Int = 0): MutableMap<String, ExcelHeaderValue<T>> {
+      val memberProperties = T::class.memberProperties.toList()
+      val headers = excelReaderItem.workbook.getSheetAt(0).getRow(rowNum)
+      val essentialHeaders = T::class.findAnnotation<ExcelReaderHeader>()?.essentialFields
+      val readHeaders: MutableMap<String, ExcelHeaderValue<T>> =
+        (0 until headers.physicalNumberOfCells).mapNotNull { cellIdx ->
+          val headerName = headers.getCell(cellIdx).stringCellValue
+          val field = memberProperties.firstOrNull { it.name == headerName } as? KMutableProperty1<T, *>?
+          if (field != null) ExcelHeaderValue(headerName, cellIdx, field)
+          else null
+        }.associateBy { it.headerName }.toMutableMap()
+
+      if (essentialHeaders != null) validateEssentialHeaders(essentialHeaders, readHeaders, rowNum)
+
+      return readHeaders
+    }
+
+    @Throws(ExcelReaderException::class)
+    fun <T : Any> validateEssentialHeaders(
+      essentialHeaders: Array<String>,
+      readHeaders: Map<String, ExcelHeaderValue<T>>,
+      rowNum: Int
+    ) {
+      val error: ExcelReaderFieldError = ExcelReaderFieldError.HEADER_MISSING
+      essentialHeaders.forEach { essentialHeader ->
+        if (!readHeaders.keys.contains(essentialHeader)) excelReaderItem.errorFieldList.add(
+          ExcelReaderErrorField(
+            type = error.name,
+            row = rowNum + 1,
+            field = essentialHeader,
+            fieldHeader = null,
+            inputData = null,
+            message = error.message,
+            exceptionMessage = "$essentialHeader header is missing."
+          )
+        )
+      }
+      if (excelReaderItem.errorFieldList.isNotEmpty())
+        throw ExcelReaderException("Essential headers are missing. ${excelReaderItem.errorFieldList.joinToString("\n") { it.toString() }}")
     }
   }
 }
