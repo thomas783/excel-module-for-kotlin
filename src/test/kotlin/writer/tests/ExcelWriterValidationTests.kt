@@ -19,11 +19,11 @@ import io.kotest.matchers.shouldBe
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
-import writer.dto.validationtypeerror.ExcelWriterValidationTypeDecimalErrorDto
-import writer.dto.validationtypeerror.ExcelWriterValidationTypeFormulaErrorDto
-import writer.dto.validationtypeerror.ExcelWriterValidationTypeIntegerErrorDto
-import writer.dto.validationtypeerror.ExcelWriterValidationTypeListErrorDto
-import writer.dto.validationtypeerror.ExcelWriterValidationTypeTextLengthErrorDto
+import writer.dto.validation.ExcelWriterValidationTypeDecimalErrorDto
+import writer.dto.validation.ExcelWriterValidationTypeFormulaErrorDto
+import writer.dto.validation.ExcelWriterValidationTypeIntegerErrorDto
+import writer.dto.validation.ExcelWriterValidationTypeListErrorDto
+import writer.dto.validation.ExcelWriterValidationTypeTextLengthErrorDto
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.memberProperties

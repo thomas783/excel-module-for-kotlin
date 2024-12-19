@@ -12,8 +12,9 @@ import kotlin.reflect.KClass
  * Annotation for Excel writer column options
  * @property headerName Customized headerName for Excel column. If not provided, it will use the property name itself
  * @property headerCellColor Customized header cell color. Default [IndexedColors.WHITE]
- * @property validationType [DataValidationConstraint.ValidationType]. Default [DataValidationConstraint.ValidationType.ANY]
- * @property operationType [DataValidationConstraint.OperatorType]. Default [DataValidationConstraint.OperatorType.IGNORED]
+ * @property validationType [DataValidationConstraint.ValidationType].
+ * Default [DataValidationConstraint.ValidationType.ANY]
+ * @property operationType [DataValidationConstraint.OperatorType]. Default [DataValidationConstraint.OperatorType.IGNORED] -1.
  * @property operationFormula1 Customized operation formula 1
  * @property operationFormula2 Customized operation formula 2
  * @property validationIgnoreBlank Ignore blank cell for validation. Use for nullable fields. Default true
@@ -32,8 +33,8 @@ import kotlin.reflect.KClass
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.PROPERTY)
 annotation class ExcelWriterColumn(
-  val headerName: String = "",
-  val headerCellColor: IndexedColors = IndexedColors.WHITE,
+//  val headerName: String = "",
+//  val headerCellColor: IndexedColors = IndexedColors.WHITE,
   val validationType: Int = DataValidationConstraint.ValidationType.ANY,
   val operationType: Int = DEFAULT_OPERATION_TYPE,
   val operationFormula1: String = "",

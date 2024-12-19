@@ -1,7 +1,9 @@
 package writer.dto
 
+import excel.writer.annotation.ExcelWritable
 import excel.writer.annotation.ExcelWriterColumn
 import excel.writer.annotation.ExcelWriterFreezePane
+import excel.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -10,11 +12,20 @@ import shared.OrderStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@ExcelWritable(
+  properties = [
+    "countryCode", "sku", "orderNumber", "orderStatus", "price", "quantity",
+    "orderedAt", "paidDate", "productName", "option", "textLengthGreaterThanThree",
+    "decimalBetween0And10", "integerGreaterThan5"
+  ]
+)
 @ExcelWriterFreezePane(rowSplit = 1)
 data class ExcelWriterSampleDto(
+  @ExcelWriterHeader(
+    name = "COUNTRY CODE",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "COUNTRY CODE",
-    headerCellColor = IndexedColors.RED,
     validationType = DataValidationConstraint.ValidationType.FORMULA,
     validationIgnoreBlank = false,
     validationFormula = "AND(EXACT(UPPER(${ExcelWriterColumn.CURRENT_CELL}), ${ExcelWriterColumn.CURRENT_CELL}), LEN(${ExcelWriterColumn.CURRENT_CELL}) = 2)",
@@ -25,21 +36,23 @@ data class ExcelWriterSampleDto(
   )
   val countryCode: String,
 
-  @ExcelWriterColumn(
-    headerCellColor = IndexedColors.RED,
+  @ExcelWriterHeader(
+    cellColor = IndexedColors.RED
   )
   val sku: String,
 
-  @ExcelWriterColumn(
-    headerName = "ORDER NUMBER",
-    headerCellColor = IndexedColors.RED,
-    validationPromptTitle = "ORDER NUMBER"
+  @ExcelWriterHeader(
+    name = "ORDER NUMBER",
+    cellColor = IndexedColors.RED
   )
+  @ExcelWriterColumn(validationPromptTitle = "ORDER NUMBER")
   val orderNumber: String,
 
+  @ExcelWriterHeader(
+    name = "ORDER STATUS",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "ORDER STATUS",
-    headerCellColor = IndexedColors.RED,
     validationType = DataValidationConstraint.ValidationType.LIST,
     validationIgnoreBlank = false,
     validationErrorStyle = DataValidation.ErrorStyle.STOP,
@@ -49,57 +62,72 @@ data class ExcelWriterSampleDto(
   )
   val orderStatus: OrderStatus,
 
+  @ExcelWriterHeader(
+    name = "PRICE",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "PRICE",
-    headerCellColor = IndexedColors.RED,
     validationPromptTitle = "PRICE"
   )
   val price: Double,
 
+  @ExcelWriterHeader(
+    name = "QUANTITY",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "QUANTITY",
-    headerCellColor = IndexedColors.RED,
     validationPromptTitle = "QUANTITY"
   )
   val quantity: Int,
 
+  @ExcelWriterHeader(
+    name = "ORDERED AT",
+    cellColor = IndexedColors.BLUE
+  )
   @ExcelWriterColumn(
-    headerName = "ORDERED AT",
-    headerCellColor = IndexedColors.BLUE,
     validationPromptTitle = "ORDERED AT"
   )
   val orderedAt: LocalDateTime? = null,
 
+  @ExcelWriterHeader(
+    name = "PAID DATE",
+    cellColor = IndexedColors.BLUE
+  )
   @ExcelWriterColumn(
-    headerName = "PAID DATE",
-    headerCellColor = IndexedColors.BLUE,
     validationPromptTitle = "PAID DATE"
   )
   val paidDate: LocalDate? = null,
 
   @ExcelWriterColumn(
-    headerName = "PRODUCT NAME",
     validationPromptTitle = "PRODUCT NAME"
   )
   val productName: String? = null,
 
+  @ExcelWriterHeader(
+    name = "SAMPLE LIST",
+  )
   @ExcelWriterColumn(
-    headerName = "SAMPLE LIST",
     validationType = DataValidationConstraint.ValidationType.LIST,
     validationListOptions = ["option1", "option2", "option3"]
   )
   val option: String,
 
+  @ExcelWriterHeader(
+    name = "TEXT LENGTH LIMIT TO THREE",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "TEXT LENGTH LIMIT TO THREE",
     validationType = DataValidationConstraint.ValidationType.TEXT_LENGTH,
     operationType = DataValidationConstraint.OperatorType.GREATER_OR_EQUAL,
     operationFormula1 = "3",
   )
   val textLengthGreaterThanThree: String? = null,
 
+  @ExcelWriterHeader(
+    name = "DECIMAL BETWEEN 0 AND 10",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "DECIMAL BETWEEN 0 AND 10",
     validationType = DataValidationConstraint.ValidationType.DECIMAL,
     operationType = DataValidationConstraint.OperatorType.BETWEEN,
     operationFormula1 = "0",
@@ -107,8 +135,11 @@ data class ExcelWriterSampleDto(
   )
   val decimalBetween0And10: Double,
 
+  @ExcelWriterHeader(
+    name = "INTEGER GREATER THAN 5",
+    cellColor = IndexedColors.RED
+  )
   @ExcelWriterColumn(
-    headerName = "INTEGER GREATER THAN 5",
     validationType = DataValidationConstraint.ValidationType.INTEGER,
     operationType = DataValidationConstraint.OperatorType.GREATER_THAN,
     operationFormula1 = "5"

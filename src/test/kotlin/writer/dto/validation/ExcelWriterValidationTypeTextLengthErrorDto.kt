@@ -1,12 +1,17 @@
-package writer.dto.validationtypeerror
+package writer.dto.validation
 
+import excel.writer.annotation.ExcelWritable
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import shared.IExcelWriterCommonDto
 
+@ExcelWritable
 data class ExcelWriterValidationTypeTextLengthErrorDto(
+  @ExcelWriterHeader(
+    name = "SAMPLE TEXT LENGTH"
+  )
   @ExcelWriterColumn(
-    headerName = "SAMPLE TEXT LENGTH",
     validationType = DataValidationConstraint.ValidationType.TEXT_LENGTH,
   )
   val text: String,

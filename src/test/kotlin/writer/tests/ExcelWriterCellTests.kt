@@ -1,5 +1,7 @@
 package writer.tests
 
+import excel.writer.annotation.ExcelWritable
+import excel.writer.annotation.ExcelWritable.Companion.getProperties
 import excel.writer.annotation.ExcelWriterColumn
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
@@ -26,14 +28,13 @@ class ExcelWriterCellTests : BehaviorSpec({
     path = "sample-cell-value-type-check",
   )
 
-  given("ExcelWriterColumn Annotation") {
+  given("ExcelWritable Annotation") {
     val sheet = baseTest.workbook.getSheetAt(0)
-    val sampleDtoMemberPropertiesMap = sampleDtoKClass.memberProperties
-      .filter { it.hasAnnotation<ExcelWriterColumn>() }
-      .associate { it.name to it.findAnnotation<ExcelWriterColumn>() }
+    val excelWritableProperties = sampleDtoKClass.findAnnotation<ExcelWritable>()?.getProperties<ExcelWriterSampleDto>()
+      ?.toList()!!
     val sampleDtoConstructorParameters = sampleDtoKClass.constructors.flatMap { it.parameters }
     val sampleDtoConstructorReturnTypeInOrder = sampleDtoConstructorParameters.filter { parameter ->
-      sampleDtoMemberPropertiesMap[parameter.name] != null
+      parameter.name in excelWritableProperties
     }.map { Triple(it.name, it.type.jvmErasure, it.type.isMarkedNullable) }
 
     then("excel cell type is set to expected type") {

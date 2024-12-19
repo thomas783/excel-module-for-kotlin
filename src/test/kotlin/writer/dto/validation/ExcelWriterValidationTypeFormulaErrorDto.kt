@@ -1,12 +1,15 @@
-package writer.dto.validationtypeerror
+package writer.dto.validation
 
+import excel.writer.annotation.ExcelWritable
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import shared.IExcelWriterCommonDto
 
+@ExcelWritable
 data class ExcelWriterValidationTypeFormulaErrorDto(
+  @ExcelWriterHeader(name = "SAMPLE FORMULA")
   @ExcelWriterColumn(
-    headerName = "SAMPLE FORMULA",
     validationType = DataValidationConstraint.ValidationType.FORMULA,
   )
   val formula: String,

@@ -1,11 +1,14 @@
 package excel.writer
 
+import excel.writer.annotation.ExcelWritable
 import excel.writer.annotation.ExcelWriterColumn
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationErrorText
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationFormula
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationList
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationPromptText
 import excel.writer.annotation.ExcelWriterFreezePane
+import excel.writer.annotation.ExcelWriterHeader
+import excel.writer.exception.ExcelWritableMissingException
 import excel.writer.exception.ExcelWriterValidationDecimalException
 import excel.writer.exception.ExcelWriterValidationIntegerException
 import excel.writer.exception.ExcelWriterValidationTextLengthException
@@ -73,8 +76,12 @@ class ExcelWriter {
     }
 
     inline fun <reified T : Any> createWorkbook(data: Collection<T>, sheetName: String): SXSSFWorkbook {
+      val excelWritableProperties = T::class.findAnnotation<ExcelWritable>()?.properties
+        ?: throw ExcelWritableMissingException()
+
       val memberProperties = T::class.memberProperties.filter {
-        it.findAnnotation<ExcelWriterColumn>() != null
+        if (excelWritableProperties.isEmpty()) true
+        else it.name in excelWritableProperties
       }
       val parameters: List<KProperty1<T, *>> = T::class.constructors.map { constructor ->
         constructor.parameters.mapNotNull { kParameter: KParameter ->
@@ -99,9 +106,9 @@ class ExcelWriter {
     fun <T : Any> SXSSFSheet.setHeaderRows(kProperties: List<KProperty1<T, *>>) {
       val headerRow = createRow(0)
       kProperties.forEachIndexed { columnIndex, property ->
-        val columnAnnotation = property.findAnnotation<ExcelWriterColumn>() ?: return@forEachIndexed
-        val headerName = columnAnnotation.headerName.takeIf { it.isNotBlank() } ?: property.name
-        val headerCellStyle = createHeaderCellStyle(workbook, columnAnnotation)
+        val columnAnnotation = property.findAnnotation<ExcelWriterHeader>() ?: ExcelWriterHeader()
+        val headerName = columnAnnotation.name.takeIf { it.isNotBlank() } ?: property.name
+        val headerCellStyle = createHeaderCellStyle(workbook, columnAnnotation.cellColor)
 
         headerRow.createCell(columnIndex).apply {
           setCellValue(headerName)
@@ -111,14 +118,14 @@ class ExcelWriter {
       }
     }
 
-    private fun createHeaderCellStyle(workbook: SXSSFWorkbook, excelColumn: ExcelWriterColumn): XSSFCellStyle {
+    private fun createHeaderCellStyle(workbook: SXSSFWorkbook, indexedColors: IndexedColors): XSSFCellStyle {
       val fontStyle = workbook.createFont().apply {
         bold = true
         fontHeightInPoints = 16
       }
       return workbook.createCellStyle().apply {
         alignment = HorizontalAlignment.CENTER
-        fillForegroundColor = excelColumn.headerCellColor.index
+        fillForegroundColor = indexedColors.index
         fillPattern = FillPatternType.SOLID_FOREGROUND
         borderTop = BorderStyle.THIN
         borderBottom = BorderStyle.THIN

@@ -1,12 +1,17 @@
-package writer.dto.validationtypeerror
+package writer.dto.validation
 
+import excel.writer.annotation.ExcelWritable
 import excel.writer.annotation.ExcelWriterColumn
+import excel.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import shared.IExcelWriterCommonDto
 
+@ExcelWritable
 data class ExcelWriterValidationTypeDecimalErrorDto(
+  @ExcelWriterHeader(
+    name = "SAMPLE DECIMAL"
+  )
   @ExcelWriterColumn(
-    headerName = "SAMPLE DECIMAL",
     validationType = DataValidationConstraint.ValidationType.DECIMAL
   )
   val decimal: Double,
