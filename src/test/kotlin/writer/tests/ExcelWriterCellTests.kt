@@ -2,7 +2,6 @@ package writer.tests
 
 import excel.writer.annotation.ExcelWritable
 import excel.writer.annotation.ExcelWritable.Companion.getProperties
-import excel.writer.annotation.ExcelWriterColumn
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug
@@ -13,7 +12,6 @@ import writer.dto.ExcelWriterSampleDto
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure

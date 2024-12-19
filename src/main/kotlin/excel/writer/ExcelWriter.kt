@@ -1,6 +1,7 @@
 package excel.writer
 
 import excel.writer.annotation.ExcelWritable
+import excel.writer.annotation.ExcelWritable.Companion.getProperties
 import excel.writer.annotation.ExcelWriterColumn
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationErrorText
 import excel.writer.annotation.ExcelWriterColumn.Companion.getValidationFormula
@@ -34,10 +35,21 @@ import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
 
+/**
+ * Excel Writer
+ *
+ * This class is meant to be used for writing data to an Excel file.
+ * @see [ExcelWritable]
+ * @see [ExcelWriterColumn]
+ * @see [ExcelWriterHeader]
+ * @see [ExcelWriterFreezePane]
+ */
 class ExcelWriter {
   companion object {
     // not to create too much cell styles
     private lateinit var columnCellStyleMap: MutableMap<KClass<*>, CellStyle>
+
+    // If you want to add more default KClasses, you can add them here
     private val defaultKClasses: List<KClass<*>> = listOf(
       String::class,
       Int::class,
@@ -47,6 +59,9 @@ class ExcelWriter {
       LocalDateTime::class,
     )
 
+    /**
+     * Extension function to initialize the column cell style map
+     */
     fun SXSSFWorkbook.initColumnCellStyleMap() {
       columnCellStyleMap = mutableMapOf()
       defaultKClasses.forEach { kClass ->
@@ -58,6 +73,15 @@ class ExcelWriter {
       }
     }
 
+    /**
+     * Function to get the cell style format based on the KClass
+     *
+     * If you want to add or customize the format, you can do it here
+     * @param format [DataFormat]
+     * @param kClass [KClass]
+     * @return [Short]
+     * @see org.apache.poi.ss.usermodel.DataFormat
+     */
     private fun getDataFormatByKClass(format: DataFormat, kClass: KClass<*>): Short {
       return when (kClass) {
         String::class -> format.getFormat("@")
@@ -69,19 +93,28 @@ class ExcelWriter {
       }
     }
 
+    /**
+     * Extension function to set freeze pane based on the [ExcelWriterFreezePane] annotation
+     */
     inline fun <reified T : Any> SXSSFSheet.setFreezePane() {
       T::class.findAnnotation<ExcelWriterFreezePane>()?.let {
         createFreezePane(it.colSplit, it.rowSplit)
       }
     }
 
+    /**
+     * Function to create a workbook
+     * @param data [Collection]
+     * @param sheetName [String] name for the sheet in the workbook
+     * @return [SXSSFWorkbook]
+     * @throws [ExcelWritableMissingException] If [ExcelWritable] not annotated to given data
+     */
     inline fun <reified T : Any> createWorkbook(data: Collection<T>, sheetName: String): SXSSFWorkbook {
-      val excelWritableProperties = T::class.findAnnotation<ExcelWritable>()?.properties
+      val excelWritableProperties = T::class.findAnnotation<ExcelWritable>()?.getProperties<T>()
         ?: throw ExcelWritableMissingException()
 
       val memberProperties = T::class.memberProperties.filter {
-        if (excelWritableProperties.isEmpty()) true
-        else it.name in excelWritableProperties
+        it.name in excelWritableProperties
       }
       val parameters: List<KProperty1<T, *>> = T::class.constructors.map { constructor ->
         constructor.parameters.mapNotNull { kParameter: KParameter ->
@@ -103,12 +136,16 @@ class ExcelWriter {
       return workbook
     }
 
+    /**
+     * Extension function to set header rows
+     * @param kProperties list of [KProperty1]
+     */
     fun <T : Any> SXSSFSheet.setHeaderRows(kProperties: List<KProperty1<T, *>>) {
       val headerRow = createRow(0)
       kProperties.forEachIndexed { columnIndex, property ->
         val columnAnnotation = property.findAnnotation<ExcelWriterHeader>() ?: ExcelWriterHeader()
         val headerName = columnAnnotation.name.takeIf { it.isNotBlank() } ?: property.name
-        val headerCellStyle = createHeaderCellStyle(workbook, columnAnnotation.cellColor)
+        val headerCellStyle = workbook.createHeaderCellStyle(columnAnnotation.cellColor)
 
         headerRow.createCell(columnIndex).apply {
           setCellValue(headerName)
@@ -118,12 +155,17 @@ class ExcelWriter {
       }
     }
 
-    private fun createHeaderCellStyle(workbook: SXSSFWorkbook, indexedColors: IndexedColors): XSSFCellStyle {
-      val fontStyle = workbook.createFont().apply {
+    /**
+     * Extension function for creating header cell styles
+     *
+     * If you want to change the default header cell styles, you can change here
+     */
+    private fun SXSSFWorkbook.createHeaderCellStyle(indexedColors: IndexedColors): XSSFCellStyle {
+      val fontStyle = createFont().apply {
         bold = true
         fontHeightInPoints = 16
       }
-      return workbook.createCellStyle().apply {
+      return createCellStyle().apply {
         alignment = HorizontalAlignment.CENTER
         fillForegroundColor = indexedColors.index
         fillPattern = FillPatternType.SOLID_FOREGROUND
@@ -139,6 +181,10 @@ class ExcelWriter {
       } as XSSFCellStyle
     }
 
+    /**
+     * Extension function to set header prompt box
+     * @param property [KProperty1]
+     */
     private fun <T : Any> SXSSFSheet.setHeaderPromptBox(property: KProperty1<T, *>, columnIdx: Int) {
       val excelColumn = property.findAnnotation<ExcelWriterColumn>() ?: return
       val helper = this.dataValidationHelper
@@ -153,6 +199,11 @@ class ExcelWriter {
       this.addValidationData(validation)
     }
 
+    /**
+     * Extension function to set the cell data
+     * @param inputData [Collection]
+     * @param kProperties list of [KProperty1]
+     */
     fun <T : Any> SXSSFSheet.setBodyData(inputData: Collection<T>, kProperties: List<KProperty1<T, *>>) {
       inputData.mapIndexed { rowIndex, item ->
         val row = this.createRow(rowIndex + 1)
@@ -165,6 +216,11 @@ class ExcelWriter {
       }
     }
 
+    /**
+     * Extension function to set the cell value and data format
+     * @param property [KProperty1]
+     * @param value [Any]
+     */
     private fun <T> SXSSFCell.setValueAndDataFormat(property: KProperty1<T, *>, value: Any) {
       val propertyReturnType = property.returnType.jvmErasure
 
@@ -187,6 +243,14 @@ class ExcelWriter {
       }
     }
 
+    /**
+     * Extension function to set validation constraints
+     *
+     * If validationType is [DataValidationConstraint.ValidationType.FORMULA] then it will set the formula for each cell
+     * else then it will set the validation constraint for the whole column by the data size
+     * @param kProperties list of [KProperty1]
+     * @param dataSize [Int] size of the data
+     */
     fun <T : Any> SXSSFSheet.setValidationConstraints(
       kProperties: List<KProperty1<T, *>>,
       dataSize: Int,
@@ -247,6 +311,13 @@ class ExcelWriter {
       }
     }
 
+    /**
+     * Extension function to set validation constraint
+     *
+     * @param excelColumn [ExcelWriterColumn]
+     * @param addressList [CellRangeAddressList]
+     * @param constraint [DataValidationConstraint]
+     */
     private fun SXSSFSheet.setValidationConstraint(
       excelColumn: ExcelWriterColumn,
       addressList: CellRangeAddressList,

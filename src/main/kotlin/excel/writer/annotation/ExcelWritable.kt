@@ -9,8 +9,8 @@ annotation class ExcelWritable(
 ) {
   companion object {
     inline fun <reified T : Any> ExcelWritable.getProperties(): Collection<String> {
-      return if (this.properties.isEmpty()) T::class.memberProperties.map { it.name }
-      else this.properties.toList()
+      return if (properties.isEmpty()) T::class.memberProperties.map { it.name }
+      else properties.toList()
     }
   }
 }

@@ -1,17 +1,14 @@
 package excel.writer.annotation
 
-import excel.writer.exception.ExcelWriterException
 import excel.writer.exception.ExcelWriterValidationFormulaException
 import excel.writer.exception.ExcelWriterValidationListException
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
-import org.apache.poi.ss.usermodel.IndexedColors
 import kotlin.reflect.KClass
 
 /**
  * Annotation for Excel writer column options
- * @property headerName Customized headerName for Excel column. If not provided, it will use the property name itself
- * @property headerCellColor Customized header cell color. Default [IndexedColors.WHITE]
+ *
  * @property validationType [DataValidationConstraint.ValidationType].
  * Default [DataValidationConstraint.ValidationType.ANY]
  * @property operationType [DataValidationConstraint.OperatorType]. Default [DataValidationConstraint.OperatorType.IGNORED] -1.
@@ -26,15 +23,11 @@ import kotlin.reflect.KClass
  * @property validationErrorStyle Error style for validation [STOP, WARNING, INFO]
  * @property validationErrorTitle Title for validation if error occurs
  * @property validationErrorText Text for validation if error occurs
- * @throws ExcelWriterException if validationListOptions or validationListEnum is not provided
- * @see IndexedColors
  */
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.PROPERTY)
 annotation class ExcelWriterColumn(
-//  val headerName: String = "",
-//  val headerCellColor: IndexedColors = IndexedColors.WHITE,
   val validationType: Int = DataValidationConstraint.ValidationType.ANY,
   val operationType: Int = DEFAULT_OPERATION_TYPE,
   val operationFormula1: String = "",
@@ -52,6 +45,13 @@ annotation class ExcelWriterColumn(
   enum class DefaultValidationListEnum
 
   companion object {
+    /**
+     *
+     * Extension function to get validation list options
+     * @return Array of validation list options in [String]
+     * @throws ExcelWriterValidationListException when validationListOptions or validationListEnum is not provided
+     */
+    @Throws(ExcelWriterValidationListException::class)
     fun ExcelWriterColumn.getValidationList(): Array<String> {
       return when {
         validationListOptions.isNotEmpty() -> validationListOptions
@@ -62,6 +62,14 @@ annotation class ExcelWriterColumn(
       }
     }
 
+    /**
+     * Extension function to get validation formula
+     * @param columnIdx index of the column
+     * @param rowIdx index of the row
+     * @return Customized validation formula
+     * @throws ExcelWriterValidationFormulaException when validationFormula is not provided
+     */
+    @Throws(ExcelWriterValidationFormulaException::class)
     fun ExcelWriterColumn.getValidationFormula(columnIdx: Int, rowIdx: Int): String {
       if (this.validationFormula.isBlank())
         throw ExcelWriterValidationFormulaException()
@@ -71,23 +79,24 @@ annotation class ExcelWriterColumn(
       else this.validationFormula
     }
 
+    /**
+     * Extension function to get validation error text
+     *
+     * If validationType is [DataValidationConstraint.ValidationType.LIST] then it will return the text of requiring validation options
+     * @return Customized validation error text
+     */
     fun ExcelWriterColumn.getValidationErrorText(): String {
-      return with(this) {
-        when {
-          validationType == DataValidationConstraint.ValidationType.LIST -> {
-            val options = when {
-              validationListOptions.isNotEmpty() -> validationListOptions
-              validationListEnum != DefaultValidationListEnum::class -> validationListEnum.java.enumConstants
-              else -> throw ExcelWriterValidationListException()
-            }
-            "One of the following values is required. " + options.joinToString(", ")
-          }
-
-          else -> validationErrorText
-        }
-      }
+      return if (validationType == DataValidationConstraint.ValidationType.LIST) {
+        "One of the following values is required. " + getValidationList().joinToString(", ")
+      } else validationErrorText
     }
 
+    /**
+     * Extension function to get validation prompt text
+     *
+     * Priority: validationPromptText > validationErrorText > validationPromptTitle
+     * @return Customized validation prompt text
+     */
     fun ExcelWriterColumn.getValidationPromptText(): String {
       return with(this) {
         when {
@@ -114,6 +123,13 @@ annotation class ExcelWriterColumn(
 
     const val CURRENT_CELL = "CURRENT_CELL"
 
+    /**
+     * Default operation type
+     *
+     * [DataValidationConstraint.OperatorType.IGNORED] is equal to [DataValidationConstraint.OperatorType.BETWEEN]
+     * so need to set the default operation type other than [DataValidationConstraint.OperatorType.IGNORED]
+     * @see DataValidationConstraint.OperatorType
+     */
     const val DEFAULT_OPERATION_TYPE = DataValidationConstraint.OperatorType.IGNORED - 1
   }
 }
