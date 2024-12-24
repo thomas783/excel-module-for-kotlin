@@ -3,11 +3,13 @@ package reader.test
 import com.excelkotlin.reader.ExcelReader
 import com.excelkotlin.reader.annotation.ExcelReaderHeader
 import com.excelkotlin.reader.exception.ExcelReaderFileExtensionException
+import com.excelkotlin.reader.exception.ExcelReaderMissingEssentialHeaderException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug
-import io.kotest.matchers.collections.shouldBeIn
+import io.kotest.matchers.collections.shouldContainAll
+import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import reader.dto.ExcelReaderSampleDto
 import kotlin.reflect.full.findAnnotation
@@ -28,21 +30,37 @@ class ExcelReaderBaseTests : BehaviorSpec({
     then("Excel file is read successfully") {
       debug { "Excel data: $excelData" }
 
-      excelData.size shouldBe 1000
+      excelData.size shouldBeGreaterThan 0
+    }
+
+    `when`("some rows containing cells are all blank") {
+      then("should not read those rows") {
+        val sheet = excelReader.workbook.getSheetAt(0)
+        val physicalNumberOfRows = sheet.physicalNumberOfRows
+        val emptyRowSize = (1 until physicalNumberOfRows).map { rowIdx ->
+          sheet.getRow(rowIdx)
+        }.filter { row ->
+          excelReader.isRowAllBlank(row)
+        }
+
+        debug { "excel row size: $physicalNumberOfRows" }
+        debug { "empty row size: ${emptyRowSize.size}" }
+        debug { "excel dto size: ${excelData.size}" }
+
+        // -1 for header row
+        excelData.size shouldBe physicalNumberOfRows - emptyRowSize.size - 1
+      }
     }
 
     `when`("ExcelReaderHeader annotation essential fields are not empty") {
       then("file header should be containing all columns in essential fields") {
         val headerRow = excelReader.getHeader<ExcelReaderSampleDto>().map { it.key }
-        val essentialFields = ExcelReaderSampleDto::class.findAnnotation<ExcelReaderHeader>()?.essentialFields
+        val essentialFields = ExcelReaderSampleDto::class.findAnnotation<ExcelReaderHeader>()!!.essentialFields.toList()
 
         debug { "headerRow: $headerRow" }
+        debug { "essentialFieldNames: $essentialFields" }
 
-        essentialFields?.forEach { essentialFieldName ->
-          debug { "essentialFieldName: $essentialFieldName" }
-
-          essentialFieldName shouldBeIn headerRow
-        }
+        headerRow.shouldContainAll(essentialFields)
       }
     }
   }
@@ -55,7 +73,17 @@ class ExcelReaderBaseTests : BehaviorSpec({
         debug { "path: $localPath" }
 
         ExcelReader(localPath)
-      }
+      }.also { debug { it } }
+    }
+  }
+
+  given("Excel file for missing essential header row") {
+    val localPath = getLocalPath("sample-missing-essential-header.xlsx")
+
+    then("ExcelReaderMissingEssentialHeaderException is thrown") {
+      shouldThrow<ExcelReaderMissingEssentialHeaderException> {
+        ExcelReader(localPath).readExcelFile<ExcelReaderSampleDto>()
+      }.also { debug { it } }
     }
   }
 })

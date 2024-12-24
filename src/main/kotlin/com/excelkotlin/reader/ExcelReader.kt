@@ -4,6 +4,7 @@ import com.excelkotlin.reader.annotation.ExcelReaderHeader
 import com.excelkotlin.reader.exception.ExcelReaderException
 import com.excelkotlin.reader.exception.ExcelReaderFileExtensionException
 import com.excelkotlin.reader.exception.ExcelReaderInvalidCellTypeException
+import com.excelkotlin.reader.exception.ExcelReaderMissingEssentialHeaderException
 import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
 import org.apache.commons.collections4.ListUtils
@@ -135,12 +136,12 @@ class ExcelReader(path: String) : AutoCloseable {
 
   @Throws(ConstraintViolationException::class)
   fun <T : Any> checkValidation(obj: T, fieldName: String) {
+    if (obj !is IExcelReaderCommonDto) return
+
     runCatching {
-      if (obj is IExcelReaderCommonDto)
-        obj.validate()
+      obj.validate()
     }.onFailure { exception ->
-      exception as ConstraintViolationException
-      exception.constraintViolations
+      (exception as ConstraintViolationException).constraintViolations
         .firstOrNull { it.property == fieldName }
         ?.run { throw ConstraintViolationException(setOf(this)) }
     }
@@ -208,33 +209,21 @@ class ExcelReader(path: String) : AutoCloseable {
         else null
       }.associateBy { it.headerName }.toMutableMap()
 
-    if (essentialHeaders != null) validateEssentialHeaders(essentialHeaders, readHeaders, rowNum)
+    if (essentialHeaders != null) validateEssentialHeaders(essentialHeaders, readHeaders)
 
     return readHeaders
   }
 
-  @Throws(ExcelReaderException::class)
+  @Throws(ExcelReaderMissingEssentialHeaderException::class)
   fun <T : Any> validateEssentialHeaders(
     essentialHeaders: Array<String>,
     readHeaders: Map<String, ExcelHeaderValue<T>>,
-    rowNum: Int
   ) {
-    val error: ExcelReaderFieldError = ExcelReaderFieldError.HEADER_MISSING
-    essentialHeaders.forEach { essentialHeader ->
-      if (!readHeaders.keys.contains(essentialHeader)) errorFieldList.add(
-        ExcelReaderErrorField(
-          type = error.name,
-          row = rowNum + 1,
-          field = essentialHeader,
-          fieldHeader = null,
-          inputData = null,
-          message = error.message,
-          exceptionMessage = "$essentialHeader header is missing."
-        )
-      )
+    val missingEssentialHeaders = essentialHeaders.filter {
+      !readHeaders.keys.contains(it)
     }
-    if (errorFieldList.isNotEmpty())
-      throw ExcelReaderException("Essential headers are missing. ${errorFieldList.joinToString("\n") { it.toString() }}")
+    if (missingEssentialHeaders.isNotEmpty())
+      throw ExcelReaderMissingEssentialHeaderException("Essential headers are missing. $missingEssentialHeaders")
   }
 
   companion object {
