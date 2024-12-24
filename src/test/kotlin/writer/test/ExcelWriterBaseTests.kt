@@ -6,6 +6,7 @@ import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.core.spec.Spec
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import shared.getLocalPath
 import writer.dto.IExcelWriterCommonDto
 import java.io.File
 import java.io.FileOutputStream
@@ -21,8 +22,7 @@ class ExcelWriterBaseTests(
 ) : DslDrivenSpec() {
   lateinit var excelFile: File
   lateinit var workbook: Workbook
-  val localPath: String
-    get() = "src/test/resources/sample/$path.xlsx"
+  val localPath: String = "${getLocalPath(path)}.xlsx"
 
   init {
     initialize()

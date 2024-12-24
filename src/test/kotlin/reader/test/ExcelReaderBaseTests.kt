@@ -12,6 +12,7 @@ import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import reader.dto.ExcelReaderSampleDto
+import shared.getLocalPath
 import kotlin.reflect.full.findAnnotation
 
 @OptIn(ExperimentalKotest::class)
@@ -87,7 +88,3 @@ class ExcelReaderBaseTests : BehaviorSpec({
     }
   }
 })
-
-fun getLocalPath(path: String): String {
-  return "src/test/resources/sample/$path"
-}
