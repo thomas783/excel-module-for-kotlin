@@ -21,7 +21,7 @@ class ExcelWriterBaseTests(
   lateinit var excelFile: File
   lateinit var workbook: Workbook
   val localPath: String
-    get() = "src/test/resources/$path.xlsx"
+    get() = "src/test/resources/sample/$path.xlsx"
 
   init {
     initialize()

@@ -2,6 +2,7 @@ package com.excelkotlin.reader
 
 import com.excelkotlin.reader.annotation.ExcelReaderHeader
 import com.excelkotlin.reader.exception.ExcelReaderException
+import com.excelkotlin.reader.exception.ExcelReaderFileExtensionException
 import com.excelkotlin.reader.exception.ExcelReaderInvalidCellTypeException
 import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
@@ -30,8 +31,9 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.jvmErasure
 
-class ExcelReader(path: String) {
+class ExcelReader(path: String) : AutoCloseable {
   lateinit var errorFieldList: MutableList<ExcelReaderErrorField>
+  lateinit var excelFile: File
   lateinit var workbook: Workbook
 
   val typeParser: TypeParser = TypeParser.newBuilder()
@@ -45,6 +47,10 @@ class ExcelReader(path: String) {
 
   init {
     initExcelReaderItems(path)
+  }
+
+  override fun close() {
+    workbook.close()
   }
 
   data class ExcelHeaderValue<T>(
@@ -85,7 +91,7 @@ class ExcelReader(path: String) {
     }
   }
 
-  inline fun <reified T : Any> setObjectMapping(obj: T, row: Row): T {
+  inline fun <reified T : IExcelReaderCommonDto> setObjectMapping(obj: T, row: Row): T {
     val headerMap = getHeader<T>()
 
     headerMap.mapValues { (_, excelHeaderValue) ->
@@ -102,7 +108,7 @@ class ExcelReader(path: String) {
           typeParser.parseType(cellValue, field.javaField?.type)
         field.isAccessible = true
         field.setter.call(obj, setData)
-//        checkValidation(obj, field.name)
+        checkValidation(obj, field.name)
       }.onFailure { exception ->
         val (error, message) = when (exception) {
           is ExcelReaderInvalidCellTypeException -> ExcelReaderFieldError.TYPE to ExcelReaderFieldError.TYPE.message
@@ -127,18 +133,24 @@ class ExcelReader(path: String) {
     return obj
   }
 
-//  fun <T> checkValidation(obj: T, fieldName: String) {
-//    validator.validate(obj)
-//      .firstOrNull { data -> data.propertyPath.toString() == fieldName }
-//      ?.run { throw ValidationException() }
-//  }
+  @Throws(ConstraintViolationException::class)
+  fun <T : IExcelReaderCommonDto> checkValidation(obj: T, fieldName: String) {
+    runCatching {
+      obj.validate()
+    }.onFailure { exception ->
+      exception as ConstraintViolationException
+      exception.constraintViolations
+        .firstOrNull { it.property == fieldName }
+        ?.run { throw ConstraintViolationException(setOf(this)) }
+    }
+  }
 
   @Throws(ExcelReaderException::class)
   fun initExcelReaderItems(path: String) {
-    val excelFile = File(path).also {
-      checkFileValidation(it)
+    excelFile = File(path).also {
+      validateFileExtension(it)
     }
-    val workbook: Workbook = runCatching {
+    workbook = runCatching {
       excelFile.inputStream().use {
         WorkbookFactory.create(excelFile)
       }
@@ -147,19 +159,24 @@ class ExcelReader(path: String) {
     }.getOrThrow()
 
     errorFieldList = mutableListOf()
-    this.workbook = workbook
   }
 
-  @Throws(ExcelReaderException::class)
-  private fun checkFileValidation(file: File) {
+  @Throws(ExcelReaderFileExtensionException::class)
+  private fun validateFileExtension(file: File) {
     val fileExtension = file.name.substring(file.name.lastIndexOf(".") + 1)
 
     if (fileExtension !in excelFileExtensions)
-      throw ExcelReaderException("Invalid file extension $fileExtension. Only ${excelFileExtensions.joinToString(", ") { ".$it" }} file extension is allowed.")
+      throw ExcelReaderFileExtensionException(
+        "Invalid file extension $fileExtension. Only ${
+          excelFileExtensions.joinToString(
+            ", "
+          ) { ".$it" }
+        } file extension is allowed."
+      )
   }
 
   @Throws(ExcelReaderException::class)
-  inline fun <reified T : Any> readExcelFile(startRow: Int = 1): List<T> {
+  inline fun <reified T : IExcelReaderCommonDto> readExcelFile(startRow: Int = 1): List<T> {
     val sheet = workbook.getSheetAt(0)
     val rowCount = sheet.physicalNumberOfRows
     val objectList = (startRow until rowCount)
@@ -172,7 +189,7 @@ class ExcelReader(path: String) {
     return objectList
   }
 
-  inline fun <reified T : Any> readRow(row: Row): T = setObjectMapping(T::class.createInstance(), row)
+  inline fun <reified T : IExcelReaderCommonDto> readRow(row: Row): T = setObjectMapping(T::class.createInstance(), row)
 
   fun isRowAllBlank(row: Row): Boolean {
     return row.cellIterator().asSequence().all { it.cellType == CellType.BLANK }
