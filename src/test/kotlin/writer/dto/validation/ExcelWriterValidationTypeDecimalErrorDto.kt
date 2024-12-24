@@ -4,7 +4,7 @@ import com.excelkotlin.writer.annotation.ExcelWritable
 import com.excelkotlin.writer.annotation.ExcelWriterColumn
 import com.excelkotlin.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidationConstraint
-import shared.IExcelWriterCommonDto
+import writer.dto.IExcelWriterCommonDto
 
 @ExcelWritable
 data class ExcelWriterValidationTypeDecimalErrorDto(

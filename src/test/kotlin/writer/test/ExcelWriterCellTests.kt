@@ -7,7 +7,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.collections.shouldBeIn
 import org.apache.poi.ss.usermodel.CellType
-import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
+import writer.test.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import java.time.LocalDate
 import java.time.LocalDateTime

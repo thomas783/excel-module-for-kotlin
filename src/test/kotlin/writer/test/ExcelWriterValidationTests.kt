@@ -17,7 +17,7 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.shouldBe
 import org.apache.poi.ss.usermodel.DataValidationConstraint
-import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
+import writer.test.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import writer.dto.validation.ExcelWriterValidationTypeDecimalErrorDto
 import writer.dto.validation.ExcelWriterValidationTypeFormulaErrorDto

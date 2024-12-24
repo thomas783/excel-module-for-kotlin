@@ -33,7 +33,7 @@ import kotlin.reflect.jvm.jvmErasure
 
 class ExcelReader(path: String) : AutoCloseable {
   lateinit var errorFieldList: MutableList<ExcelReaderErrorField>
-  lateinit var excelFile: File
+  private lateinit var excelFile: File
   lateinit var workbook: Workbook
 
   val typeParser: TypeParser = TypeParser.newBuilder()
@@ -91,7 +91,7 @@ class ExcelReader(path: String) : AutoCloseable {
     }
   }
 
-  inline fun <reified T : IExcelReaderCommonDto> setObjectMapping(obj: T, row: Row): T {
+  inline fun <reified T : Any> setObjectMapping(obj: T, row: Row): T {
     val headerMap = getHeader<T>()
 
     headerMap.mapValues { (_, excelHeaderValue) ->
@@ -134,9 +134,10 @@ class ExcelReader(path: String) : AutoCloseable {
   }
 
   @Throws(ConstraintViolationException::class)
-  fun <T : IExcelReaderCommonDto> checkValidation(obj: T, fieldName: String) {
+  fun <T : Any> checkValidation(obj: T, fieldName: String) {
     runCatching {
-      obj.validate()
+      if (obj is IExcelReaderCommonDto)
+        obj.validate()
     }.onFailure { exception ->
       exception as ConstraintViolationException
       exception.constraintViolations
@@ -176,7 +177,7 @@ class ExcelReader(path: String) : AutoCloseable {
   }
 
   @Throws(ExcelReaderException::class)
-  inline fun <reified T : IExcelReaderCommonDto> readExcelFile(startRow: Int = 1): List<T> {
+  inline fun <reified T : Any> readExcelFile(startRow: Int = 1): List<T> {
     val sheet = workbook.getSheetAt(0)
     val rowCount = sheet.physicalNumberOfRows
     val objectList = (startRow until rowCount)
@@ -189,7 +190,7 @@ class ExcelReader(path: String) : AutoCloseable {
     return objectList
   }
 
-  inline fun <reified T : IExcelReaderCommonDto> readRow(row: Row): T = setObjectMapping(T::class.createInstance(), row)
+  inline fun <reified T : Any> readRow(row: Row): T = setObjectMapping(T::class.createInstance(), row)
 
   fun isRowAllBlank(row: Row): Boolean {
     return row.cellIterator().asSequence().all { it.cellType == CellType.BLANK }

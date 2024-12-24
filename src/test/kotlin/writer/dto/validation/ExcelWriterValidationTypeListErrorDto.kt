@@ -5,7 +5,7 @@ import com.excelkotlin.writer.annotation.ExcelWriterColumn
 import com.excelkotlin.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
-import shared.IExcelWriterCommonDto
+import writer.dto.IExcelWriterCommonDto
 import shared.OrderStatus
 
 @ExcelWritable

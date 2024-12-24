@@ -7,7 +7,7 @@ import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.shouldBe
-import shared.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
+import writer.test.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import writer.dto.ExcelWriterSampleDto
 import writer.dto.ExcelWriterWritableMissingErrorDto
 

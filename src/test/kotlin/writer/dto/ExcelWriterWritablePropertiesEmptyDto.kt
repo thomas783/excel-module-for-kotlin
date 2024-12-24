@@ -2,7 +2,6 @@ package writer.dto
 
 import com.excelkotlin.writer.annotation.ExcelWritable
 import com.excelkotlin.writer.annotation.ExcelWriterHeader
-import shared.IExcelWriterCommonDto
 
 @ExcelWritable
 data class ExcelWriterWritablePropertiesEmptyDto(

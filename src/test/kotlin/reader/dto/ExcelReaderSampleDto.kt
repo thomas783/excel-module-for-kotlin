@@ -1,10 +1,10 @@
 package reader.dto
 
 import com.excelkotlin.reader.IExcelReaderCommonDto
+import com.excelkotlin.reader.annotation.ExcelReaderHeader
 import org.valiktor.ConstraintViolationException
 import org.valiktor.functions.hasSize
 import org.valiktor.functions.isBetween
-import org.valiktor.functions.isGreaterThan
 import org.valiktor.functions.isGreaterThanOrEqualTo
 import org.valiktor.functions.isIn
 import org.valiktor.functions.isNotNull
@@ -14,6 +14,9 @@ import shared.OrderStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
 
+@ExcelReaderHeader(
+  essentialFields = ["countryCode", "sku", "orderNumber", "orderStatus", "price", "quantity", "orderedAt"]
+)
 data class ExcelReaderSampleDto(
   var countryCode: String? = null,
   var sku: String? = null,

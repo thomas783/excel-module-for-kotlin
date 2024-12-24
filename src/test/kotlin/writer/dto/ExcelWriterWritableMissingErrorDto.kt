@@ -1,7 +1,5 @@
 package writer.dto
 
-import shared.IExcelWriterCommonDto
-
 data class ExcelWriterWritableMissingErrorDto(
   val id: Long,
 ) {

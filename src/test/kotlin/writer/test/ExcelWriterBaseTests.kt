@@ -1,4 +1,4 @@
-package shared
+package writer.test
 
 import com.excelkotlin.writer.ExcelWriter
 import io.kotest.core.annotation.Ignored
@@ -6,6 +6,7 @@ import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.core.spec.Spec
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
+import writer.dto.IExcelWriterCommonDto
 import java.io.File
 import java.io.FileOutputStream
 import kotlin.reflect.full.createInstance
