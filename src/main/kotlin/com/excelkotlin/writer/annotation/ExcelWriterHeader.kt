@@ -1,4 +1,4 @@
-package excel.writer.annotation
+package com.excelkotlin.writer.annotation
 
 import org.apache.poi.ss.usermodel.IndexedColors
 

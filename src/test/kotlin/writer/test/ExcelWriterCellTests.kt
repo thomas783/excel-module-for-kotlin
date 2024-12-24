@@ -1,7 +1,7 @@
-package writer.tests
+package writer.test
 
-import excel.writer.annotation.ExcelWritable
-import excel.writer.annotation.ExcelWritable.Companion.getProperties
+import com.excelkotlin.writer.annotation.ExcelWritable
+import com.excelkotlin.writer.annotation.ExcelWritable.Companion.getProperties
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug

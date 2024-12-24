@@ -1,4 +1,4 @@
-package excel.reader
+package com.excelkotlin.reader
 
 enum class ExcelReaderFieldError(var message: String) {
   HEADER_MISSING("Essential header missing"), TYPE("Invalid data type: "), VALID("Validation error"), UNKNOWN("Unknown");
@@ -15,7 +15,7 @@ enum class ExcelReaderFieldError(var message: String) {
 
     private fun initMapping() {
       messageToMap = mutableMapOf()
-      values().forEach {
+      entries.forEach {
         messageToMap[it.name] = it
       }
     }

@@ -1,7 +1,7 @@
 package writer.dto
 
-import excel.writer.annotation.ExcelWritable
-import excel.writer.annotation.ExcelWriterHeader
+import com.excelkotlin.writer.annotation.ExcelWritable
+import com.excelkotlin.writer.annotation.ExcelWriterHeader
 import shared.IExcelWriterCommonDto
 
 @ExcelWritable

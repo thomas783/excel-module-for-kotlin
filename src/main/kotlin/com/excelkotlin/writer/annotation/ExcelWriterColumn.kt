@@ -1,7 +1,7 @@
-package excel.writer.annotation
+package com.excelkotlin.writer.annotation
 
-import excel.writer.exception.ExcelWriterValidationFormulaException
-import excel.writer.exception.ExcelWriterValidationListException
+import com.excelkotlin.writer.exception.ExcelWriterValidationFormulaException
+import com.excelkotlin.writer.exception.ExcelWriterValidationListException
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import kotlin.reflect.KClass

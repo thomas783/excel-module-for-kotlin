@@ -1,4 +1,4 @@
-package excel.writer.exception
+package com.excelkotlin.writer.exception
 
 abstract class ExcelWriterValidationTypeException(
   message: String = "ExcelColumn with validationType is something wrong..."

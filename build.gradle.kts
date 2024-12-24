@@ -1,6 +1,5 @@
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
-import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 
 plugins {
   kotlin("jvm") version "1.9.24"
@@ -28,7 +27,7 @@ dependencies {
   implementation("org.apache.commons:commons-lang3:3.12.0")
 
   // validation
-  implementation("javax.validation:validation-api:2.0.1.Final")
+  implementation("org.valiktor:valiktor-core:0.12.0")
 
   // test
   testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
@@ -48,5 +47,5 @@ tasks {
 }
 
 kotlin {
-  jvmToolchain(21)
+  jvmToolchain(17)
 }

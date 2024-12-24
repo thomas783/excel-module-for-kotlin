@@ -1,4 +1,4 @@
-package excel.writer.annotation
+package com.excelkotlin.writer.annotation
 
 /**
  * Annotation for Excel writer freeze pane option

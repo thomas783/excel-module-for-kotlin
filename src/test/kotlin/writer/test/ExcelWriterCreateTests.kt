@@ -1,7 +1,7 @@
-package writer.tests
+package writer.test
 
-import excel.writer.ExcelWriter
-import excel.writer.exception.ExcelWritableMissingException
+import com.excelkotlin.writer.ExcelWriter
+import com.excelkotlin.writer.exception.ExcelWritableMissingException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec

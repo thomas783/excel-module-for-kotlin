@@ -1,8 +1,8 @@
 package writer.dto.validation
 
-import excel.writer.annotation.ExcelWritable
-import excel.writer.annotation.ExcelWriterColumn
-import excel.writer.annotation.ExcelWriterHeader
+import com.excelkotlin.writer.annotation.ExcelWritable
+import com.excelkotlin.writer.annotation.ExcelWriterColumn
+import com.excelkotlin.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
 import shared.IExcelWriterCommonDto

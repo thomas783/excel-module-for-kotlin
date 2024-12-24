@@ -1,4 +1,4 @@
-package excel.reader.exception
+package com.excelkotlin.reader.exception
 
 class ExcelReaderInvalidCellTypeException(
   message: String = "Invalid cell type."

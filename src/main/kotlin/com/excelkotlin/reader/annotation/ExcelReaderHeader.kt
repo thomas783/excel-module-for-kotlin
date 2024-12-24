@@ -1,4 +1,4 @@
-package excel.reader.annotation
+package com.excelkotlin.reader.annotation
 
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS)

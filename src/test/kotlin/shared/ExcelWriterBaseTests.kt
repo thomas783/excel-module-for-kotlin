@@ -1,6 +1,6 @@
 package shared
 
-import excel.writer.ExcelWriter
+import com.excelkotlin.writer.ExcelWriter
 import io.kotest.core.annotation.Ignored
 import io.kotest.core.spec.DslDrivenSpec
 import io.kotest.core.spec.Spec

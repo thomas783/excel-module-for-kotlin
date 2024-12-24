@@ -1,4 +1,4 @@
-package excel.reader
+package com.excelkotlin.reader
 
 class ExcelReaderErrorField(
   var type: String?,

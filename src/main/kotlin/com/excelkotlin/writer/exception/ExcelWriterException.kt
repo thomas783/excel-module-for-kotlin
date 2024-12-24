@@ -1,4 +1,4 @@
-package excel.writer.exception
+package com.excelkotlin.writer.exception
 
 abstract class ExcelWriterException(
   message: String = "An error occurred while creating an Excel file."
