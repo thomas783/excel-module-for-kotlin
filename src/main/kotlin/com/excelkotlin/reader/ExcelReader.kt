@@ -4,10 +4,10 @@ import com.excelkotlin.reader.annotation.ExcelReaderHeader
 import com.excelkotlin.reader.exception.ExcelReaderException
 import com.excelkotlin.reader.exception.ExcelReaderFileExtensionException
 import com.excelkotlin.reader.exception.ExcelReaderInvalidCellTypeException
+import com.excelkotlin.reader.exception.ExcelReaderInvalidCellValueException
 import com.excelkotlin.reader.exception.ExcelReaderMissingEssentialHeaderException
 import com.github.drapostolos.typeparser.TypeParser
 import com.github.drapostolos.typeparser.TypeParserException
-import org.apache.commons.collections4.ListUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.poi.ss.formula.eval.ErrorEval
@@ -18,6 +18,7 @@ import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.ss.usermodel.WorkbookFactory
 import org.valiktor.ConstraintViolationException
+import org.valiktor.i18n.toMessage
 import java.io.File
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -63,9 +64,13 @@ class ExcelReader(path: String) : AutoCloseable {
   fun <T : Any> checkCellType(cell: Cell?, property: KProperty1<T, *>) {
     val cellType = cell?.cellType ?: return
 
-    if (property.returnType.jvmErasure in listOf(LocalDate::class, LocalDateTime::class) &&
-      cellType != CellType.NUMERIC
-    ) throw ExcelReaderInvalidCellTypeException("Invalid cell type. The field type must be a date type.")
+    when (property.returnType.jvmErasure) {
+      String::class -> if (cellType == CellType.NUMERIC)
+        throw ExcelReaderInvalidCellTypeException("Invalid cell type. The field type must be a string type.")
+
+      LocalDate::class, LocalDateTime::class -> if (cellType != CellType.NUMERIC)
+        throw ExcelReaderInvalidCellTypeException("Invalid cell type. The field type must be a date type.")
+    }
   }
 
   fun getValue(cell: Cell?): String? {
@@ -114,7 +119,7 @@ class ExcelReader(path: String) : AutoCloseable {
         val (error, message) = when (exception) {
           is ExcelReaderInvalidCellTypeException -> ExcelReaderFieldError.TYPE to ExcelReaderFieldError.TYPE.message
           is TypeParserException -> ExcelReaderFieldError.TYPE to "${exception.message} Field Type: ${field.javaField?.type?.simpleName}, Input Type: ${cellValue?.javaClass?.simpleName}"
-          is ConstraintViolationException -> ExcelReaderFieldError.VALID to ExcelReaderFieldError.VALID.message
+          is ExcelReaderInvalidCellValueException -> ExcelReaderFieldError.VALID to ExcelReaderFieldError.VALID.message
           else -> ExcelReaderFieldError.UNKNOWN to ExcelReaderFieldError.UNKNOWN.message
         }
         errorFieldList.add(
@@ -142,8 +147,8 @@ class ExcelReader(path: String) : AutoCloseable {
       obj.validate()
     }.onFailure { exception ->
       (exception as ConstraintViolationException).constraintViolations
-        .firstOrNull { it.property == fieldName }
-        ?.run { throw ConstraintViolationException(setOf(this)) }
+        .firstOrNull { it.property == fieldName }?.toMessage()
+        ?.let { throw ExcelReaderInvalidCellValueException(it.toString()) }
     }
   }
 
@@ -185,8 +190,8 @@ class ExcelReader(path: String) : AutoCloseable {
       .filterNot { rowIdx -> isRowAllBlank(sheet.getRow(rowIdx)) }
       .map { rowIdx -> readRow<T>(sheet.getRow(rowIdx)) }
 
-    if (ListUtils.emptyIfNull(errorFieldList).isNotEmpty())
-      throw ExcelReaderException("Something went wrong while reading the excel file. ${errorFieldList.joinToString("\n") { it.toString() }}")
+    if (errorFieldList.isNotEmpty())
+      throw ExcelReaderException(errorFieldList = errorFieldList)
 
     return objectList
   }

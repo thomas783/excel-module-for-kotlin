@@ -42,14 +42,14 @@ class ExcelReaderBaseTests : BehaviorSpec({
           sheet.getRow(rowIdx)
         }.filter { row ->
           excelReader.isRowAllBlank(row)
-        }
+        }.size
 
         debug { "excel row size: $physicalNumberOfRows" }
-        debug { "empty row size: ${emptyRowSize.size}" }
+        debug { "empty row size: ${emptyRowSize}" }
         debug { "excel dto size: ${excelData.size}" }
 
         // -1 for header row
-        excelData.size shouldBe physicalNumberOfRows - emptyRowSize.size - 1
+        excelData.size shouldBe physicalNumberOfRows - emptyRowSize - 1
       }
     }
 
