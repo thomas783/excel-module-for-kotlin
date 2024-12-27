@@ -1,6 +1,6 @@
-![excelkotlin](docs/kotlin-logo.png)
+![exmoko](docs/kotlin-logo.png)
 
-> This is a modules that allows you to read and write Excel files in kotlin.
+> Exmoko is an Excel module for kotlin that allows you to read and write Excel files in kotlin.
 > It is a wrapper around Apache POI library.
 
 ## Build
@@ -51,8 +51,8 @@ val path = "your/own/directory/persons.xlsx"
 val persons = ExcelReader(path).readExcelFile<PersonToRead>()
 ```
 
-See [sample](excelkotlin-sample) for more examples.
+See [sample](exmoko-sample) for more examples.
 
-See [test-reader](excelkotlin/src/test/kotlin/reader) for better understanding of how to read Excel files.
+See [test-reader](exmoko/src/test/kotlin/reader) for better understanding of how to read Excel files.
 
-See [test-writer](excelkotlin/src/test/kotlin/writer) for better understanding of how to write Excel files.
+See [test-writer](exmoko/src/test/kotlin/writer) for better understanding of how to write Excel files.

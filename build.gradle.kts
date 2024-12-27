@@ -6,7 +6,7 @@ plugins {
 }
 
 allprojects {
-  group = "org.excelkotlin"
+  group = "org.exmoko"
 
   repositories {
     mavenCentral()
