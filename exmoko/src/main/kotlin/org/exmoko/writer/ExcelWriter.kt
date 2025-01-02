@@ -1,5 +1,15 @@
 package org.exmoko.writer
 
+import org.apache.poi.ss.usermodel.BorderStyle
+import org.apache.poi.ss.usermodel.DataValidationConstraint
+import org.apache.poi.ss.usermodel.FillPatternType
+import org.apache.poi.ss.usermodel.HorizontalAlignment
+import org.apache.poi.ss.usermodel.IndexedColors
+import org.apache.poi.ss.util.CellRangeAddressList
+import org.apache.poi.xssf.streaming.SXSSFCell
+import org.apache.poi.xssf.streaming.SXSSFSheet
+import org.apache.poi.xssf.streaming.SXSSFWorkbook
+import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import org.exmoko.writer.annotation.ExcelWritable
 import org.exmoko.writer.annotation.ExcelWritable.Companion.getProperties
 import org.exmoko.writer.annotation.ExcelWriterColumn
@@ -13,21 +23,8 @@ import org.exmoko.writer.exception.ExcelWritableMissingException
 import org.exmoko.writer.exception.ExcelWriterValidationDecimalException
 import org.exmoko.writer.exception.ExcelWriterValidationIntegerException
 import org.exmoko.writer.exception.ExcelWriterValidationTextLengthException
-import org.apache.poi.ss.usermodel.BorderStyle
-import org.apache.poi.ss.usermodel.CellStyle
-import org.apache.poi.ss.usermodel.DataFormat
-import org.apache.poi.ss.usermodel.DataValidationConstraint
-import org.apache.poi.ss.usermodel.FillPatternType
-import org.apache.poi.ss.usermodel.HorizontalAlignment
-import org.apache.poi.ss.usermodel.IndexedColors
-import org.apache.poi.ss.util.CellRangeAddressList
-import org.apache.poi.xssf.streaming.SXSSFCell
-import org.apache.poi.xssf.streaming.SXSSFSheet
-import org.apache.poi.xssf.streaming.SXSSFWorkbook
-import org.apache.poi.xssf.usermodel.XSSFCellStyle
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.reflect.KClass
 import kotlin.reflect.KParameter
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.findAnnotation
@@ -46,55 +43,11 @@ import kotlin.reflect.jvm.jvmErasure
  */
 class ExcelWriter {
   companion object {
-    // not to create too much cell styles
-    private lateinit var columnCellStyleMap: MutableMap<KClass<*>, CellStyle>
-
-    // If you want to add more default KClasses, you can add them here
-    private val defaultKClasses: List<KClass<*>> = listOf(
-      String::class,
-      Int::class,
-      Double::class,
-      Long::class,
-      LocalDate::class,
-      LocalDateTime::class,
-    )
-
-    /**
-     * Extension function to initialize the column cell style map
-     */
-    fun SXSSFWorkbook.initColumnCellStyleMap() {
-      columnCellStyleMap = mutableMapOf()
-      defaultKClasses.forEach { kClass ->
-        val dataFormat = createDataFormat()
-        val columnCellStyle = createCellStyle().apply {
-          this.dataFormat = getDataFormatByKClass(dataFormat, kClass)
-        }
-        columnCellStyleMap[kClass] = columnCellStyle
-      }
-    }
-
-    /**
-     * Function to get the cell style format based on the KClass
-     *
-     * If you want to add or customize the format, you can do it here
-     * @param format [DataFormat]
-     * @param kClass [KClass]
-     * @return [Short]
-     * @see org.apache.poi.ss.usermodel.DataFormat
-     */
-    private fun getDataFormatByKClass(format: DataFormat, kClass: KClass<*>): Short {
-      return when (kClass) {
-        String::class -> format.getFormat("@")
-        Int::class, Long::class -> format.getFormat("0")
-        Double::class -> format.getFormat("0.0")
-        LocalDate::class -> format.getFormat("yyyy-mm-dd")
-        LocalDateTime::class -> format.getFormat("yyyy-mm-dd hh:mm:ss")
-        else -> format.getFormat("@")
-      }
-    }
+    val formatter by lazy { ExcelWriterFormatter() }
 
     /**
      * Extension function to set freeze pane based on the [ExcelWriterFreezePane] annotation
+     * @see ExcelWriterFreezePane
      */
     inline fun <reified T : Any> SXSSFSheet.setFreezePane() {
       T::class.findAnnotation<ExcelWriterFreezePane>()?.let {
@@ -122,7 +75,7 @@ class ExcelWriter {
         }
       }.flatten()
       val workbook = SXSSFWorkbook().apply {
-        initColumnCellStyleMap()
+        formatter.initFormatter(this, T::class)
         createSheet(sheetName).apply {
           // tracking all columns for auto-sizing takes to long
           untrackAllColumnsForAutoSizing()
@@ -211,7 +164,10 @@ class ExcelWriter {
           val cell = row.createCell(columnIndex)
           val value = property.get(item)
 
-          if (value != null) cell.setValueAndDataFormat(property, value)
+          if (value != null) cell.apply {
+            setValue(property, value)
+            setDataFormat(property)
+          }
         }
       }
     }
@@ -221,26 +177,31 @@ class ExcelWriter {
      * @param property [KProperty1]
      * @param value [Any]
      */
-    private fun <T> SXSSFCell.setValueAndDataFormat(property: KProperty1<T, *>, value: Any) {
+    private fun <T> SXSSFCell.setValue(property: KProperty1<T, *>, value: Any) {
       val propertyReturnType = property.returnType.jvmErasure
 
-      this.apply {
-        if (propertyReturnType.isSubclassOf(Enum::class)) {
-          val enumValue = (value as? Enum<*>)?.name ?: ""
-          setCellValue(enumValue)
-          cellStyle = columnCellStyleMap[String::class]
-        } else {
-          when (propertyReturnType) {
-            String::class -> setCellValue(value as String)
-            LocalDate::class -> setCellValue(value as LocalDate)
-            LocalDateTime::class -> setCellValue(value as LocalDateTime)
-            Double::class -> setCellValue(value as Double)
-            Int::class, Long::class -> setCellValue(value.toString().toDouble())
-            else -> setCellValue(value.toString())
-          }
-          cellStyle = columnCellStyleMap[propertyReturnType]
+      if (propertyReturnType.isSubclassOf(Enum::class)) {
+        val enumValue = (value as? Enum<*>)?.name ?: ""
+        setCellValue(enumValue)
+      } else {
+        when (propertyReturnType) {
+          String::class -> setCellValue(value as String)
+          LocalDate::class -> setCellValue(value as LocalDate)
+          LocalDateTime::class -> setCellValue(value as LocalDateTime)
+          Double::class -> setCellValue(value as Double)
+          Int::class, Long::class -> setCellValue(value.toString().toDouble())
+          else -> setCellValue(value.toString())
         }
       }
+    }
+
+    /**
+     * Extension function to set the data format for cell
+     *
+     * @param property [KProperty1]
+     */
+    private fun <T> SXSSFCell.setDataFormat(property: KProperty1<T, *>) {
+      cellStyle = formatter.getCellStyle(property)
     }
 
     /**

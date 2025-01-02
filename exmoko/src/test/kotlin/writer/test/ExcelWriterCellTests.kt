@@ -1,17 +1,20 @@
 package writer.test
 
-import org.exmoko.writer.annotation.ExcelWritable
-import org.exmoko.writer.annotation.ExcelWritable.Companion.getProperties
 import io.kotest.common.ExperimentalKotest
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.engine.test.logging.debug
 import io.kotest.matchers.collections.shouldBeIn
 import org.apache.poi.ss.usermodel.CellType
-import writer.test.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
+import org.exmoko.writer.ExcelWriterFormatter
+import org.exmoko.writer.annotation.ExcelWritable
+import org.exmoko.writer.annotation.ExcelWritable.Companion.getProperties
+import org.exmoko.writer.annotation.ExcelWriterFormat
 import writer.dto.ExcelWriterSampleDto
+import writer.test.ExcelWriterBaseTests.Companion.setExcelWriterCommonSpec
 import java.time.LocalDate
 import java.time.LocalDateTime
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.jvmErasure
@@ -61,23 +64,18 @@ class ExcelWriterCellTests : BehaviorSpec({
     }
 
     then("excel cell is set to expected format") {
+      val defaultFormatter = ExcelWriterFormatter()
+      val memberProperties = sampleDtoKClass.memberProperties
       sampleDtoConstructorReturnTypeInOrder.forEachIndexed { columnIdx, (propertyName, kClass, isMarkedNullable) ->
+        val customFormat = memberProperties.firstOrNull { it.name == propertyName}?.findAnnotation<ExcelWriterFormat>()?.pattern
+        val expectedFormat = if (!customFormat.isNullOrBlank()) customFormat
+        else defaultFormatter.getFormat(kClass)
+        val expectedDataFormats = if (isMarkedNullable) setOf("General", expectedFormat)
+        else setOf(expectedFormat)
+
         (1..sampleDataSize).forEach { rowIdx ->
           val cell = sheet.getRow(rowIdx).getCell(columnIdx)
           val cellDataFormat = cell.cellStyle.dataFormatString
-          val expectedDataFormat = when {
-            kClass.isSubclassOf(Enum::class) -> "@"
-            else -> when (kClass) {
-              String::class -> "@"
-              Int::class, Long::class -> "0"
-              Double::class -> "0.0"
-              LocalDate::class -> "yyyy-mm-dd"
-              LocalDateTime::class -> "yyyy-mm-dd hh:mm:ss"
-              else -> "@"
-            }
-          }
-          val expectedDataFormats = if (isMarkedNullable) setOf("General", expectedDataFormat)
-          else setOf(expectedDataFormat)
 
           debug { "rowIdx: $rowIdx, columnIdx: $columnIdx" }
           debug { "Property Name: $propertyName, Expected Data Formats: $expectedDataFormats" }

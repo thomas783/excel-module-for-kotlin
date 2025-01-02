@@ -33,6 +33,12 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.jvmErasure
 
+/**
+ * Excel Reader
+ *
+ * This class is used to read Excel files.
+ * @param path The path of the Excel file to read.
+ */
 class ExcelReader(path: String) : AutoCloseable {
   lateinit var errorFieldList: MutableList<ExcelReaderErrorField>
   private lateinit var excelFile: File

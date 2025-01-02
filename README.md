@@ -53,6 +53,6 @@ val persons = ExcelReader(path).readExcelFile<PersonToRead>()
 
 See [sample](exmoko-sample) for more examples.
 
-See [test-reader](exmoko/src/test/kotlin/reader) for better understanding of how to read Excel files.
+See [test for reader](exmoko/src/test/kotlin/reader) for better understanding of how to read Excel files.
 
-See [test-writer](exmoko/src/test/kotlin/writer) for better understanding of how to write Excel files.
+See [test for writer](exmoko/src/test/kotlin/writer) for better understanding of how to write Excel files.

@@ -1,12 +1,13 @@
 package writer.dto
 
-import org.exmoko.writer.annotation.ExcelWritable
-import org.exmoko.writer.annotation.ExcelWriterColumn
-import org.exmoko.writer.annotation.ExcelWriterFreezePane
-import org.exmoko.writer.annotation.ExcelWriterHeader
 import org.apache.poi.ss.usermodel.DataValidation
 import org.apache.poi.ss.usermodel.DataValidationConstraint
 import org.apache.poi.ss.usermodel.IndexedColors
+import org.exmoko.writer.annotation.ExcelWritable
+import org.exmoko.writer.annotation.ExcelWriterColumn
+import org.exmoko.writer.annotation.ExcelWriterFormat
+import org.exmoko.writer.annotation.ExcelWriterFreezePane
+import org.exmoko.writer.annotation.ExcelWriterHeader
 import shared.OrderStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -67,6 +68,9 @@ data class ExcelWriterSampleDto(
   )
   @ExcelWriterColumn(
     validationPromptTitle = "PRICE"
+  )
+  @ExcelWriterFormat(
+    pattern = "#,##0.00"
   )
   val price: Double,
 
